@@ -1,9 +1,9 @@
 //defining CONST handler and route
 const handler = {};
 
-handler.sample = function (data, callback) {
+handler.ping = function (data, callback) {
   // calback a status code and a payload
-  callback(406, { name: "sanmple handler" });
+  callback(200);
 };
 
 handler.notFound = function (data, callback) {
@@ -11,10 +11,15 @@ handler.notFound = function (data, callback) {
   callback(404);
 };
 
+handler.hello = function (data, callback) {
+  callback(200, {"message":"Welcome to the API of ZITROJJDEV"})
+}
+
 // we define a router to choose which handler will handle which url req
 const router = {
-  sample: handler.sample,
-  notFound: handler.notFound
+  'ping': handler.ping,
+  'hello':handler.hello,
+  'notFound': handler.notFound
 };
 //
 module.exports = router
