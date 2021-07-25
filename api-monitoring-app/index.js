@@ -10,13 +10,6 @@ const https = require('https')
 const unifiedServer = require('./server')
 const config = require('./config')
 const fs = require('fs')
-const __data = require('./lib/data')
-
-//TESTING
-// @TODO delete this
-__data.read('test','newFile', function(err, data){
-  console.log('this was the error: ', err, data);
-})
 
 // The server should respond to all requests with a string
 const httpServer = http.createServer(function(req, res){

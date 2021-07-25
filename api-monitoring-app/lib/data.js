@@ -49,10 +49,48 @@ lib.read= function(dir, file,callback) {
 // UPDATE DATA FROM AN EXISTING FILE
 
 lib.update = function (dir, file, data, callbak){
-    
+    //Open the file for writing
+    fs.open(lib.baseDir + dir + '/' + file + '.json', 'r+', function(err,fileDescriptor) {
+        if(!err && fileDescriptor){
+            const stringData = JSON.stringify(data)
+
+            // Truncate the file
+            fs.ftruncate(fileDescriptor, function(err){
+                if(!err){
+                    //write to the file and close it
+                    fs.writeFile(fileDescriptor, stringData, function(err){
+                        if(!err){
+                            fs.close(fileDescriptor, function(err){
+                                if(!err){
+                                    callbak(false)
+                                } else {
+                                    callbak('Error closing the file')
+                                }
+                            })
+                        }else {
+                            callbak('Error writing to existing file')
+                        }
+                    })
+                }else{
+                    callbak('Error truncating the file')
+                }
+            })
+        }else {
+            callbak('Could not open the file for updating, it may not exist yet')
+        }
+    })
 }
 
-
+lib.delete = function(dir, file, callback){
+    //unlink the file
+    fs.unlink(lib.baseDir + dir + '/' + file + '.json', function(err){
+        if(!err){
+            callback(false)
+        }else{
+            callback('Error deleting the file')
+        }
+    })
+}
 
 // export it
 
