@@ -1,6 +1,7 @@
 const router = require('./router')
 const {URL} = require("url");
 const StringDecoder = require("string_decoder").StringDecoder;
+const helpers = require('../lib/helpers');
 
 const unifiedServer = (req, res) => {
     //get the url and pars it
@@ -33,7 +34,7 @@ const unifiedServer = (req, res) => {
       'queryStringObject' : queryStringObject,
       'method' : method,
       'headers' : headers,
-      'payload' : buffer
+      'payload' : helpers.parseJsonToObject(buffer)
     }
       //we choose a 
       

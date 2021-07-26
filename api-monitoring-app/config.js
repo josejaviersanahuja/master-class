@@ -10,12 +10,14 @@ enviroments.staging = {
   'httpPort': 3002,
   'httpsPort': 3001,
   'envName': "staging", // could be development
+  'hashingSecret': 'thisIsASecret'
 };
 
 enviroments.production = {
   'httpPort': 5000,
   'httpsPort': 5001,
   'envName': "production",
+  'hashingSecret': 'thisIsASecret'
 };
 
 // Determine which enviroment export.
