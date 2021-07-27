@@ -4,6 +4,7 @@
 
 const fs = require('fs')
 const path = require('path')
+const helpers = require('./helpers')
 
 // CONTAINER
 
@@ -42,7 +43,12 @@ lib.create= function(dir, file, data, callback) {
 // READ DATA from a file
 lib.read= function(dir, file,callback) {
     fs.readFile(lib.baseDir+ dir + '/' + file + '.json', 'utf8', function(err, data){
-        callback(err, data)
+        if (!err && data) {
+            const parsedData = helpers.parseJsonToObject(data)
+            callback(false, parsedData)
+        } else {
+            callback(err, data)    
+        }
     })
 }
 

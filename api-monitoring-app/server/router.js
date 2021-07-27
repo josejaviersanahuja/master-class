@@ -4,6 +4,7 @@
  */
 
 //Dependencies
+const { type } = require("os");
 const _data = require("../lib/data");
 const helpers = require("../lib/helpers");
 
@@ -88,7 +89,7 @@ handler._users.post = function (data, callback) {
             }
           });
         } else {
-          callback(500, {'Error': 'Could not hash the users password'})
+          callback(500, { Error: "Could not hash the users password" });
         }
       } else {
         callback(400, { Error: "User already exist" });
@@ -99,11 +100,128 @@ handler._users.post = function (data, callback) {
   }
 };
 //users-get
-handler._users.get = function (data, callback) {console.log('entro en el users get');};
+// Required data: phone
+// Optional data: none
+// @TODO Only let an authenticated user acces their object
+handler._users.get = function (data, callback) {
+  //Check that the phone number is valid
+  const phone =
+    typeof data.queryStringObject.get("phone") == "string" &&
+    data.queryStringObject.get("phone").trim().length === 10
+      ? data.queryStringObject.get("phone").trim()
+      : false;
+  if (phone) {
+    // Look up the user
+    _data.read("users", phone, function (err, data) {
+      if (!err && data) {
+        // removed the hashed password from the user object
+        delete data.hashedPassword;
+        callback(200, data);
+      } else {
+        callback(404);
+      }
+    });
+  } else {
+    callback(400, { Error: "Missing required field" });
+  }
+};
 //users-put
-handler._users.put = function (data, callback) {};
+//Required data: phone + 1 optional data
+//Optional data: firstName, lastName, password
+// @TODO Only let an authenticated user update their own object. Don´t let anyone else acces
+handler._users.put = function (data, callback) {
+  // Check the required fields
+  const phone =
+    typeof data.payload.phone == "string" &&
+    data.payload.phone.trim().length === 10 // check this line to integrate a universal use of phone numbers
+      ? data.payload.phone.trim()
+      : false;
+
+  // Check for the optional fields
+  const firstName =
+    typeof data.payload.firstName == "string" &&
+    data.payload.firstName.trim().length > 0
+      ? data.payload.firstName.trim()
+      : false;
+  const lastName =
+    typeof data.payload.lastName == "string" &&
+    data.payload.lastName.trim().length > 0
+      ? data.payload.lastName.trim()
+      : false;
+  const password =
+    typeof data.payload.password == "string" &&
+    data.payload.password.trim().length > 0
+      ? data.payload.password.trim()
+      : false;
+
+  if (phone) {
+    //Error if no attributes to update
+    if (firstName || lastName || password) {
+      // Look up the user
+      _data.read('users', phone, function(err, userData){
+        if (!err && userData) {
+          if (firstName) {
+            userData.firstName=firstName
+          }
+          if(lastName){
+            userData.lastName=lastName
+          }
+          if (password) {
+            userData.hashedPassword= helpers.hash(password)
+          }
+
+          // persist new data
+          _data.update('users', phone, userData, function(err){
+            if (!err) {
+              callback(200)
+            } else {
+              console.error(err);
+              callback(500, {'Error': 'Could not update the user'})
+            }
+          })
+        } else {
+          callback(404, {'Error': 'Specified User does not exist'})
+        }
+      })
+    } else {
+      callback(400, {'Error':'Missing fields to update'})
+    }
+  } else {
+    callback(400, {'Error': 'Missing required field'})
+  }
+};
+
 //users-delete
-handler._users.delete = function (data, callback) {};
+// Required data: phone
+// @TODO Only let an authenticated user to delete his data
+// @TODO Delete any other data related to this user
+handler._users.delete = function (data, callback) {
+  //Check that the phone number is valid
+  const phone =
+    typeof data.queryStringObject.get("phone") == "string" &&
+    data.queryStringObject.get("phone").trim().length === 10
+      ? data.queryStringObject.get("phone").trim()
+      : false;
+  if (phone) {
+    // Look up the user
+    _data.read("users", phone, function (err, data) {
+      if (!err && data) {
+        // removed the hashed password from the user object
+        _data.delete('users', phone, function(err){
+          if (!err) {
+            callback(200)
+          } else {
+            callback(500, {'Error': 'Could not delete the specified user'})
+          }
+        })
+      } else {
+        callback(404, {'Error':'Could not find the specified user'});
+      }
+    });
+  } else {
+    callback(400, { Error: "Missing required field" });
+  }
+};
 
 // we define a router to choose which handler will handle which url req
 const router = {
