@@ -28,6 +28,25 @@ helpers.parseJsonToObject = function(str){
     }
 }
 
+// create a random alphanumeric id of num length
+helpers.createRandomString = function(num){
+    num = typeof(num) == 'number' && num > 0 ? num : false
+    if (num) {
+        const possibleCharacters = 'abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+
+        let finalID = ''
+
+        for (let index = 0; index < num; index++) {
+            const randomElement = possibleCharacters.charAt(Math.floor(Math.random()*possibleCharacters.length))
+
+            finalID += randomElement
+        }
+
+        return finalID
+    } else {
+        return false
+    }
+}
 
 
 
