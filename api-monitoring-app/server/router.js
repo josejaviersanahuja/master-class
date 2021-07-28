@@ -5,6 +5,7 @@
 
 //Dependencies
 const { type } = require("os");
+const config = require('../config');
 const _data = require("../lib/data");
 const helpers = require("../lib/helpers");
 
@@ -231,7 +232,7 @@ handler._users.delete = function (data, callback) {
     handler._tokens.verifyToken(token, phone, function (tokenIsValid) {
       if (tokenIsValid) {
         // Look up the user
-        console.log(token, phone, 'deleting the user');
+        console.log(token, phone, "deleting the user");
         _data.read("users", phone, function (err, data) {
           if (!err && data) {
             // removed the hashed password from the user object
@@ -437,6 +438,127 @@ handler._tokens.verifyToken = function (id, phone, booleanCallback) {
     }
   });
 };
+
+/************************************************
+ *                    CHECKS
+ * ********************************************* */
+// Lets define the main service of this API
+handler.checks = function (data, callback) {
+  //figure out which methods to trigger
+  const acceptableMethods = ["post", "get", "put", "delete"];
+  if (acceptableMethods.includes(data.method)) {
+    handler._checks[data.method](data, callback);
+  } else {
+    callback(405); // the method is not acceptable
+  }
+};
+
+// handler._checks is a container of private methods that should be hidden for everybody, but available for the main methods handler.checks
+handler._checks = {};
+
+// Checks - post
+// Required data: protocol, url, method, successCodes, TimeOut seconds
+// Optional data: none
+handler._checks.post = function (data, callback) {
+  //Validate inputs
+  const protocol =
+    typeof data.payload.protocol == "string" &&
+    ["http", "https"].includes(data.payload.protocol)
+      ? data.payload.protocol
+      : false;
+
+  const url =
+    typeof data.payload.url == "string" && data.payload.url.trim().length > 0
+      ? data.payload.url.trim()
+      : false;
+
+  const method =
+    typeof data.payload.method == "string" &&
+    ["post", "get", "put", "delete"].includes(data.payload.method.toLowerCase())
+      ? data.payload.method.toLowerCase()
+      : false;
+
+  const successCodes = Array.isArray(data.payload.successCodes)
+    ? data.payload.successCodes
+    : false;
+
+  const timeoutSeconds =
+    typeof data.payload.timeoutSeconds == "number" &&
+    data.payload.timeoutSeconds % 1 === 0 &&
+    data.payload.timeoutSeconds >= 1 &&
+    data.payload.timeoutSeconds <= 5
+      ? data.payload.timeoutSeconds
+      : false;
+
+  if (protocol && url && method && successCodes && timeoutSeconds) {
+    // Get token from header
+    const token = 
+      typeof data.headers.token == 'string'
+        ? data.headers.token
+        : false
+    
+    // Look up the user by reading the token
+    _data.read('tokens', token, function(err, tokenData){
+      if (!err && tokenData) {
+        const userPhone = tokenData.phone
+
+        //look up the user data
+        _data.read('users', userPhone, function(err, userData){
+          if (!err && userData) {
+            const userChecks = 
+              Array.isArray(userData.checks)
+                ? userData.checks
+                : []
+            
+            if (userChecks.length < config.maxChecks) {
+              // Create a random id for the check
+              const checkId = helpers.createRandomString(20)
+
+              // Create the check object and include the users phone
+              const checkObject = {
+                id : checkId,
+                userPhone: userPhone,
+                url: url,
+                method: method,
+                successCodes: successCodes,
+                timeoutSeconds: timeoutSeconds
+              }
+
+              // Save this object
+              _data.create('checks', checkId, checkObject, function(err){
+                if (!err) {
+                  // Add the check ID to the users object
+                  userData.checks = userChecks
+                  userData.checks.push(checkId)
+
+                  // persist new user check
+                  _data.update('users', userPhone, userData, function(err){
+                    if (!err) {
+                      callback(200, checkObject)
+                    } else {
+                      callback(500, {'Error':'Could not update the user new check'})
+                    }
+                  })
+                } else {
+                  callback(500, {'Error':'Could not create the new check'})
+                }
+              })
+            } else {
+              callback(400, {'Error': 'The user already got the maximum number of checks: ' + config.maxChecks})
+            }
+          } else {
+            callback(403)
+          }
+        })
+      } else {
+        callback(403)
+      }
+    })
+  } else {
+    callback(400, {'Erros': 'Missing required inputs, or inputs are invalid'})
+  }
+};
+
 /************************************************
  *                    ROUTER
  * ********************************************* */
@@ -446,6 +568,7 @@ const router = {
   users: handler.users,
   tokens: handler.tokens,
   notFound: handler.notFound,
+  checks: handler.checks,
 };
 //
 module.exports = router;

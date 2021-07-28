@@ -36,9 +36,9 @@ const unifiedServer = (req, res) => {
       'headers' : headers,
       'payload' : helpers.parseJsonToObject(buffer)
     }
-      //we choose a 
-      
-      const chosenHandler = router[trimmedPath] || router.notFound
+         
+    //we choose a handler and we use the route to do it
+    const chosenHandler = router[trimmedPath] || router.notFound
         
   // check entry data     console.log('recibimos estos datos: ', trimmedPath, buffer, method, headers);
       //Route the request to the handler specified
