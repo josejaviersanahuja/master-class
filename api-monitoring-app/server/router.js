@@ -52,7 +52,7 @@ handler._users.post = function (data, callback) {
       : false;
   const phone =
     typeof data.payload.phone == "string" &&
-    data.payload.phone.trim().length === 10 // check this line to integrate a universal use of phone numbers
+    data.payload.phone.trim().length === 11 // check this line to integrate a universal use of phone numbers
       ? data.payload.phone.trim()
       : false;
   const password =
@@ -107,7 +107,7 @@ handler._users.get = function (data, callback) {
   //Check that the phone number is valid
   const phone =
     typeof data.queryStringObject.get("phone") == "string" &&
-    data.queryStringObject.get("phone").trim().length === 10
+    data.queryStringObject.get("phone").trim().length === 11
       ? data.queryStringObject.get("phone").trim()
       : false;
   if (phone) {
@@ -144,7 +144,7 @@ handler._users.put = function (data, callback) {
   // Check the required fields
   const phone =
     typeof data.payload.phone == "string" &&
-    data.payload.phone.trim().length === 10 // check this line to integrate a universal use of phone numbers
+    data.payload.phone.trim().length === 11 // check this line to integrate a universal use of phone numbers
       ? data.payload.phone.trim()
       : false;
 
@@ -220,7 +220,7 @@ handler._users.delete = function (data, callback) {
   //Check that the phone number is valid
   const phone =
     typeof data.queryStringObject.get("phone") == "string" &&
-    data.queryStringObject.get("phone").trim().length === 10
+    data.queryStringObject.get("phone").trim().length === 11
       ? data.queryStringObject.get("phone").trim()
       : false;
   if (phone) {
@@ -304,7 +304,7 @@ handler._tokens.post = function (data, callback) {
   //Check that all required fields are filled out
   const phone =
     typeof data.payload.phone == "string" &&
-    data.payload.phone.trim().length === 10 // check this line to integrate a universal use of phone numbers
+    data.payload.phone.trim().length === 11 // check this line to integrate a universal use of phone numbers
       ? data.payload.phone.trim()
       : false;
   const password =

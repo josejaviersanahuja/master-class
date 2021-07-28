@@ -11,7 +11,12 @@ enviroments.staging = {
   'httpsPort': 3001,
   'envName': "staging", // could be development
   'hashingSecret': 'thisIsASecret',
-  'maxChecks' : 5
+  'maxChecks' : 5,
+  'twilio': {
+    'fromPhone': '+17149092365',
+    'accountSid': 'AC6e529c5151c30f0271b0283a53607a66',
+    'authToken': 'b93d7073ba556fdeb9065df1750a49d7'
+  }
 };
 
 enviroments.production = {
@@ -19,7 +24,12 @@ enviroments.production = {
   'httpsPort': 5001,
   'envName': "production",
   'hashingSecret': 'thisIsASecret',
-  'maxChecks': 5
+  'maxChecks': 5,
+  'twilio': {
+    'fromPhone': '+17149092365',
+    'accountSid': 'AC6e529c5151c30f0271b0283a53607a66',
+    'authToken': 'b93d7073ba556fdeb9065df1750a49d7'
+  }
 };
 
 // Determine which enviroment export.
