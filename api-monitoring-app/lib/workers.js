@@ -44,6 +44,44 @@ workers.loop = function () {
   }, 1000 * 120);
 };
 
+//Timer to execute the log-rotation proccess one per day
+workers.logRotationLoop = function () {
+    setInterval(function () {
+      // puedo poner el gatherAllchecks directo???
+      workers.rotateLogs();
+    }, 1000 * 60*60*24);
+  };
+
+// Rotate Compress  the logs files
+workers.rotateLogs = function(){
+    //List all none compressed logs
+    _logs.list(false, function(err, logs){ 
+        if (!err && logs && logs.length>0) {
+            logs.forEach( log => {
+                //Compress the data
+                const logId = log.replace('.log','')
+                const newFileID = logId+'-'+Date.now()
+                _logs.compress(logId, newFileID, function(err){ 
+                    if (!err) {
+                        //Truncate the original log
+                        _logs.truncate(logId, function(err){ 
+                            if (!err) {
+                                console.log('Succes truncating log file');
+                            } else {
+                                console.log('Error: Truncating the file: ' + logId);
+                            }
+                        })
+                    } else {
+                        console.log('Error: compressing the file of id: ' + logId +' and the error is: ', err);
+                    }
+                }) 
+            })
+        } else {
+            console.log('Error: Could not find any logs to rotate');
+        }
+    })
+}
+
 //Sanity-checking the checkData
 workers.validateCheckData = function (checkData) {
   // validating check data
@@ -236,9 +274,8 @@ workers.log = function(checkData, checkOutcome, state, alertWarranted, timeOfChe
     
     And Should we alert the user? - ${alertWarranted.toString()}
 ---------------------------------------------------------------------------------
-
 `
-    const fileName = `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}-${checkData.id}`
+    const fileName = `${checkData.id}`
     
     // Append the log to the right file
     _logs.append(fileName, payload, function(err){
@@ -271,6 +308,12 @@ workers.init = function () {
 
   //Call the loop so the checks will execute later on
   workers.loop();
+
+  //Compress all the logs inmediatly
+  workers.rotateLogs()
+
+  //Call the  compression loop so logs will be compressed later on
+  workers.logRotationLoop()
 };
 
 module.exports = workers
