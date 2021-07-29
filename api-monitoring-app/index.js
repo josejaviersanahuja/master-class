@@ -4,35 +4,20 @@
  * 
  */
 // Dependencies
+const server = require('./server/server')
+const workers = require('./lib/workers')
 
-const http = require("http");
-const https = require('https')
-const unifiedServer = require('./server')
-const config = require('./config')
-const fs = require('fs')
+// app container
+const app = {}
 
-// The server should respond to all requests with a string
-const httpServer = http.createServer(function(req, res){
-  unifiedServer(req, res)
-});
-
-// Start the server, and have it listen on port 3000
-httpServer.listen(config.httpPort, () => {
-  console.log("Server up and listening on port: " + config.httpPort +' in ' + config.envName + ' mode');
-});
-
-// The HTTPS
-const httpsServerOptions = {
-  'key': fs.readFileSync('./https/key.pem'),
-  'cert': fs.readFileSync('./https/cert.pem')
+// Initializing an app starts by initializing the server
+app.init = function(){
+  server.init()
+  workers.init()
 }
 
-// console.log(httpsServerOptions);
-const httpsServer = https.createServer(httpsServerOptions, function(req, res){
-  unifiedServer(req, res)
-});
+// executing initialization
+app.init()
 
-// Start the server HTTPS, and have it listen on port 3001
-httpsServer.listen(config.httpsPort, () => {
-  console.log("Server up and listening on port: " + config.httpsPort +' in ' + config.envName + ' mode');
-}); 
+//Exporting APP for testing
+module.exports = app

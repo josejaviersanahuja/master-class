@@ -81,7 +81,6 @@ helpers.sendTwilioSms =  function(phone, msg, twilioCallbackError) {
                 'Content-Length': Buffer.byteLength(stringPayload)
             }
         }
-
         // Instantiate the request object
         const req = https.request(requestDetails, function(res){
             //Grab the status of the sent request

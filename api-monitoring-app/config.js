@@ -15,7 +15,7 @@ enviroments.staging = {
   'twilio': {
     'fromPhone': '+17149092365',
     'accountSid': 'AC6e529c5151c30f0271b0283a53607a66',
-    'authToken': 'b93d7073ba556fdeb9065df1750a49d7'
+    'authToken': '855d307aff474fe0a04b9e6e8a9f9ff2'
   }
 };
 
@@ -28,7 +28,7 @@ enviroments.production = {
   'twilio': {
     'fromPhone': '+17149092365',
     'accountSid': 'AC6e529c5151c30f0271b0283a53607a66',
-    'authToken': 'b93d7073ba556fdeb9065df1750a49d7'
+    'authToken': '855d307aff474fe0a04b9e6e8a9f9ff2'
   }
 };
 

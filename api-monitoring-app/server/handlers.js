@@ -535,6 +535,7 @@ handler._checks.post = function (data, callback) {
               // Create the check object and include the users phone
               const checkObject = {
                 id: checkId,
+                protocol: protocol,
                 userPhone: userPhone,
                 url: url,
                 method: method,
@@ -782,16 +783,4 @@ handler._checks.delete = function (data, callback) {
   }
 };
 
-/************************************************
- *                    ROUTER
- * ********************************************* */
-// we define a router to choose which handler will handle which url req
-const router = {
-  ping: handler.ping,
-  users: handler.users,
-  tokens: handler.tokens,
-  notFound: handler.notFound,
-  checks: handler.checks,
-};
-//
-module.exports = router;
+module.exports = handler;
