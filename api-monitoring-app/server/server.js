@@ -90,7 +90,12 @@ const server = {}
         res.setHeader('Content-Type', 'application/json')        
         res.writeHead(statusCode)
         res.end(payloadString)
-        console.log('returning response: ', statusCode, payloadString);
+        if (statusCode === 200) {
+          console.log('\x1b[32m%s\x1b[0m','returning response: ', statusCode, payloadString);  
+        } else {
+          console.log('\x1b[31m%s\x1b[0m','returning response: ', statusCode, payloadString);
+        }
+        
     })
   });
 } 
@@ -113,12 +118,12 @@ server.router = {
 server.init = function(){
     // Start the server, and have it listen on port 3000
     server.httpServer.listen(config.httpPort, () => {
-        console.log("Server up and listening on port: " + config.httpPort +' in ' + config.envName + ' mode');
+        console.log('\x1b[35m%s\x1b[0m',"Server up and listening on port: " + config.httpPort +' in ' + config.envName + ' mode');
     });
     
     // Start the server HTTPS, and have it listen on port 3001
     server.httpsServer.listen(config.httpsPort, () => {
-    console.log("Server up and listening on port: " + config.httpsPort +' in ' + config.envName + ' mode');
+    console.log('\x1b[36m%s\x1b[0m',"Server up and listening on port: " + config.httpsPort +' in ' + config.envName + ' mode');
   }); 
   
 }

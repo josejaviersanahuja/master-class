@@ -10,6 +10,8 @@ const http = require("http");
 const https = require("https");
 const { URL } = require("url");
 const _logs = require('./logs')
+const util = require('util')
+const debug = util.debuglog('workers')
 
 // Instantiate the worker module object
 const workers = {};
@@ -26,12 +28,12 @@ workers.gatherAllChecks = function () {
             //Pass it to the check validator, and let that function continue and log errors
             workers.validateCheckData(checkData);
           } else {
-            console.log("Error reading the checks file in: " + check + ".json");
+            debug("Error reading the checks file in: " + check + ".json");
           }
         });
       });
     } else {
-      console.log("Error: Could not find any checks to process");
+      debug("Error: Could not find any checks to process");
     }
   });
 };
@@ -66,18 +68,18 @@ workers.rotateLogs = function(){
                         //Truncate the original log
                         _logs.truncate(logId, function(err){ 
                             if (!err) {
-                                console.log('Succes truncating log file');
+                              debug('Succes truncating log file');
                             } else {
-                                console.log('Error: Truncating the file: ' + logId);
+                              debug('Error: Truncating the file: ' + logId);
                             }
                         })
                     } else {
-                        console.log('Error: compressing the file of id: ' + logId +' and the error is: ', err);
+                      debug('Error: compressing the file of id: ' + logId +' and the error is: ', err);
                     }
                 }) 
             })
         } else {
-            console.log('Error: Could not find any logs to rotate');
+          debug('Error: Could not find any logs to rotate');
         }
     })
 }
@@ -147,7 +149,7 @@ workers.validateCheckData = function (checkData) {
   ) {
     workers.performCheck(checkData);
   } else {
-    console.log(
+    debug(
       "Error: one of the checks is not properly formatted. skipping it"
     );
   }
@@ -251,10 +253,10 @@ workers.processCheckOutcome = function (checkData, checkOutcome) {
           if (alertWarranted) {
               workers.alertUser(newCheckData)
           } else {
-              console.log('Check outcome has not changed, no alert needed for: ', newCheckData.url);
+            debug('Check outcome has not changed, no alert needed for: ', newCheckData.url);
           }
       } else {
-          console.log('Error when saving the updated check file: ', newCheckData.id);
+        debug('Error when saving the updated check file: ', newCheckData.id);
       }
   })
 };
@@ -280,9 +282,9 @@ workers.log = function(checkData, checkOutcome, state, alertWarranted, timeOfChe
     // Append the log to the right file
     _logs.append(fileName, payload, function(err){
         if (!err) {
-            console.log('log into the file SUCCEDED');
+          debug('log into the file SUCCEDED');
         } else {
-            console.log('log into fie FAILED');
+          debug('log into fie FAILED');
         }
     })
 }
@@ -293,13 +295,13 @@ workers.alertUser = function(newCheckData){
     // send the message
     /* helpers.sendTwilioSms(newCheckData.userPhone, msg, function(err){
         if(!err){
-            console.log('SUCCESS... user '+ newCheckData.userPhone +' alerted');
+            console.log('\x1b[47m%s\x1b[0m','SUCCESS... user '+ newCheckData.userPhone +' alerted');
         }else{
-            console.log('Error, could not send SMS alert to user: ' + newCheckData.userPhone);
+            console.log('\x1b[41m%s\x1b[0m','Error, could not send SMS alert to user: ' + newCheckData.userPhone);
         }
     }) */
     //@TODO the real app would be with twilioSMS for now just check the log
-    console.log('twilio service DOWN BY ZITROJJDEV... CHECK LOG instead ');
+    console.log('\x1b[41m%s\x1b[0m','twilio service DOWN BY ZITROJJDEV... CHECK LOG instead ');
 }
 // Init script
 workers.init = function () {
@@ -314,6 +316,9 @@ workers.init = function () {
 
   //Call the  compression loop so logs will be compressed later on
   workers.logRotationLoop()
+
+  //logging that workers are on
+  console.log('\x1b[33m%s\x1b[0m','Background workers are running');
 };
 
 module.exports = workers
