@@ -2,3 +2,4 @@
 /api-monitoring-app/.data
 /api-monitoring-app/.logs/
 /api-monitoring-app/.logs
+/api-monitoring-app/.env
