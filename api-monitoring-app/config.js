@@ -1,9 +1,9 @@
 /**
  * Creating an export configuration variables.
  */
-
+ const {privateKeys} = require('./lib/helpers')
 // Container for all the enviroments
-let enviroments = {};
+const enviroments = {};
 
 // Staging Object (default enviroment)
 enviroments.staging = {
@@ -15,7 +15,7 @@ enviroments.staging = {
   'twilio': {
     'fromPhone': '+17149092365',
     'accountSid': 'AC6e529c5151c30f0271b0283a53607a66',
-    'authToken': '855d307aff474fe0a04b9e6e8a9f9ff2'
+    'authToken': privateKeys.AUTH_TOKEN
   }
 };
 
@@ -28,7 +28,7 @@ enviroments.production = {
   'twilio': {
     'fromPhone': '+17149092365',
     'accountSid': 'AC6e529c5151c30f0271b0283a53607a66',
-    'authToken': '855d307aff474fe0a04b9e6e8a9f9ff2'
+    'authToken': privateKeys.AUTH_TOKEN
   }
 };
 

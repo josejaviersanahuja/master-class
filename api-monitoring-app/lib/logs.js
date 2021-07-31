@@ -134,7 +134,13 @@ lib.truncate = function(logId, callback){
     // Truncate the file
     fs.ftruncate(fd, 0, function(err){
         if (!err) {
-            callback(false)
+            fs.close(fd, function(err){
+                if (!err) {
+                    callback(false)      
+                } else {
+                    callback(err)
+                }
+            })
         } else {
             callback(err)
         }

@@ -6,7 +6,7 @@
 // Dependencies
 const server = require('./server/server')
 const workers = require('./lib/workers')
-
+const {dotEnvReader} = require('./lib/helpers')
 // app container
 const app = {}
 
@@ -14,6 +14,7 @@ const app = {}
 app.init = function(){
   server.init()
   workers.init()
+  dotEnvReader()
 }
 
 // executing initialization
