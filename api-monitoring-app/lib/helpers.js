@@ -111,48 +111,5 @@ helpers.sendTwilioSms =  function(phone, msg, twilioCallbackError) {
     }
 }
 
-/**************************************************
- *              DOTENVREADER
- * ********************************************* */
-
-helpers.dotEnvReader = function(){
-
-fs.open(__dirname + '/../.env', 'r', function(err, fd){
-    if (!err) {
-      fs.readFile(fd, 'utf8', function(err, data){
-        if (!err && data && data.length > 0) {
-            const arrayData = [...data]
-            const objLines = {}
-            let numEtiqueta = 1
-            objLines.line1=[]
-            arrayData.forEach(char => {
-                if (char !== '\n' && char !== '\r') {
-                    objLines[`line${numEtiqueta}`].push(char)
-                } 
-                if (char === '\r') {
-                    numEtiqueta++
-                    objLines[`line${numEtiqueta}`]=[]
-                }
-            })
-
-            Object.keys(objLines).forEach(line => {
-                const index = objLines[line].indexOf('=')
-                const stringLine = objLines[line].join("")
-                const varName = stringLine.slice(0,index)
-                const varValue = stringLine.slice(index+1, arrayData.length)
-                helpers.privateKeys[varName]=varValue
-            })    
-        } else {
-          console.log('no se leyo bien el .env');
-        }
-      })
-    } else {
-      console.log('no pude abrir .env');
-    }
-  })
-  
-}
-
-helpers.privateKeys = {}
 // Export the module
 module.exports = helpers

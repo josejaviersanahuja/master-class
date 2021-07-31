@@ -6,7 +6,7 @@
 // Dependencies
 const server = require('./server/server')
 const workers = require('./lib/workers')
-const {dotEnvReader} = require('./lib/helpers')
+const {privateKeys} = require('./lib/dotEnvReader')
 // app container
 const app = {}
 
@@ -14,11 +14,11 @@ const app = {}
 app.init = function(){
   server.init()
   workers.init()
-  dotEnvReader()
 }
 
 // executing initialization
 app.init()
-
-//Exporting APP for testing
+/* setTimeout(function(){
+  console.log(privateKeys);
+}, 6) */
 module.exports = app

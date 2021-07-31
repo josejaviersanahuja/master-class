@@ -1,7 +1,7 @@
 /**
  * Creating an export configuration variables.
  */
- const {privateKeys} = require('./lib/helpers')
+ const {privateKeys} = require('./lib/dotEnvReader')
 // Container for all the enviroments
 const enviroments = {};
 
