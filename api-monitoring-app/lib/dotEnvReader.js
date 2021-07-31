@@ -1,10 +1,14 @@
 const fs = require('fs')
+const app = require('..')
+const server = require('../server/server')
+const workers = require('./workers')
 
 /**************************************************
  *              DOTENVREADER
  * ********************************************* */
 const lib={}
-lib.dotEnvReader = function(){
+//QUE BELLO, el callback será app init. así iniciamos la app con todas las variables de entorno predefinidas.
+lib.dotEnvReader = function(callback){
     // Open .env file
     fs.open(__dirname + '/../.env', 'r', function(err, fd){
         if (!err) {
@@ -38,9 +42,15 @@ lib.dotEnvReader = function(){
                     const varValue = stringLine.slice(index+1, arrayData.length).trim()
                     // persist the key value
                     lib.privateKeys[varName]=varValue
-                })    
+                })
+                process.env = {
+                  ...process.env,
+                  ...lib.privateKeys
+                }
+                callback()
             } else {
-              console.log('no se leyo bien el .env');
+              console.log('no se leyo bien el .env. PUEDE que la APP no funcione bien');
+              callback()
             }
           })
         } else {
@@ -51,7 +61,7 @@ lib.dotEnvReader = function(){
     }
     
 lib.privateKeys = {}
-lib.dotEnvReader()
+//lib.dotEnvReader()
 
 module.exports = lib
     
