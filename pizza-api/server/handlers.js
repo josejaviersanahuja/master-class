@@ -5,9 +5,10 @@
 
 //Dependencies
 const { type } = require("os");
-const config = require("../config");
+// const config = require("../config");
 const _data = require("../lib/data");
 const helpers = require("../lib/helpers");
+const contractChecker = require('../lib/objectContractsChecker')
 
 //defining CONST handlers and router
 const handler = {};
@@ -36,66 +37,55 @@ handler.users = function (data, callback) {
 handler._users = {};
 
 // users-post
-//Required data: firstName, lastName, phone, password, tosAgreement
+//Required data: name, address, street_address, email
 //Optional data: none
 handler._users.post = function (data, callback) {
   //Check that all required fields are filled out
-  const firstName =
-    typeof data.payload.firstName == "string" &&
-    data.payload.firstName.trim().length > 0
-      ? data.payload.firstName.trim()
-      : false;
-  const lastName =
-    typeof data.payload.lastName == "string" &&
-    data.payload.lastName.trim().length > 0
-      ? data.payload.lastName.trim()
-      : false;
-  const phone =
-    typeof data.payload.phone == "string" &&
-    data.payload.phone.trim().length === 11 // check this line to integrate a universal use of phone numbers
-      ? data.payload.phone.trim()
-      : false;
-  const password =
-    typeof data.payload.password == "string" &&
-    data.payload.password.trim().length > 0
-      ? data.payload.password.trim()
-      : false;
-  const tosAgreement =
-    typeof data.payload.tosAgreement == "boolean" &&
-    data.payload.tosAgreement === true;
-
-  if (firstName && lastName && password && phone && tosAgreement) {
+  const name = contractChecker.userName(data.payload.name)
+  const address = contractChecker.userName(data.payload.address)
+  const streetAddress = contractChecker.userName(data.payload.streetAddress)
+  const password = contractChecker.password(data.payload.password)
+  
+  if (name &&  address && streetAddress && password) {
     //Make sure that the user doesnt already exist
-    _data.read("users", phone, function (err, data) {
-      if (err) {
-        // Hash the password
-        const hashedPasswor = helpers.hash(password);
-        if (hashedPasswor) {
-          // create the user Object
-          const userObject = {
-            firstName: firstName,
-            lastName: lastName,
-            phone: phone,
-            hashedPassword: hashedPasswor,
-            tosAgreement: true,
-          };
-
-          // store the user
-          _data.create("users", phone, userObject, function (err) {
-            if (!err) {
-              callback(200);
+    const email = data.payload.email
+    contractChecker.email(email, function(emailIsValid){
+      if (emailIsValid) {
+        _data.read("users", email, function (err, data) {
+          if (err) {
+            // Hash the password
+            const hashedPasswor = helpers.hash(password);
+            if (hashedPasswor) {
+              // create the user Object
+              const userObject = {
+                name: name,
+                email: email,
+                address: address,
+                hashedPassword: hashedPasswor,
+                streetAddress:streetAddress
+              };
+    
+              // store the user
+              _data.create("users", email, userObject, function (err) {
+                if (!err) {
+                  callback(200);
+                } else {
+                  console.error(err);
+                  callback(400, { Error: "Could not create the nue user" });
+                }
+              });
             } else {
-              console.error(err);
-              callback(400, { Error: "Could not create the nue user" });
+              callback(500, { Error: "Could not hash the users password" });
             }
-          });
-        } else {
-          callback(500, { Error: "Could not hash the users password" });
-        }
+          } else {
+            callback(400, { Error: "User already exist" });
+          }
+        });
       } else {
-        callback(400, { Error: "User already exist" });
+        callback(400, {Error: 'Email is invalid'})
       }
-    });
+    })
+    
   } else {
     callback(400, { Error: "Missing required fields" });
   }
@@ -105,11 +95,7 @@ handler._users.post = function (data, callback) {
 // Optional data: none
 handler._users.get = function (data, callback) {
   //Check that the phone number is valid
-  const phone =
-    typeof data.queryStringObject.get("phone") == "string" &&
-    data.queryStringObject.get("phone").trim().length === 11
-      ? data.queryStringObject.get("phone").trim()
-      : false;
+  const phone = contractChecker.phone(data.queryStringObject.get("phone"))
   if (phone) {
     //Get the token from headers
     const token =
@@ -142,28 +128,12 @@ handler._users.get = function (data, callback) {
 //Optional data: firstName, lastName, password
 handler._users.put = function (data, callback) {
   // Check the required fields
-  const phone =
-    typeof data.payload.phone == "string" &&
-    data.payload.phone.trim().length === 11 // check this line to integrate a universal use of phone numbers
-      ? data.payload.phone.trim()
-      : false;
+  const phone = contractChecker.phone(data.payload.phone)
 
   // Check for the optional fields
-  const firstName =
-    typeof data.payload.firstName == "string" &&
-    data.payload.firstName.trim().length > 0
-      ? data.payload.firstName.trim()
-      : false;
-  const lastName =
-    typeof data.payload.lastName == "string" &&
-    data.payload.lastName.trim().length > 0
-      ? data.payload.lastName.trim()
-      : false;
-  const password =
-    typeof data.payload.password == "string" &&
-    data.payload.password.trim().length > 0
-      ? data.payload.password.trim()
-      : false;
+  const firstName = contractChecker.userName(data.payload.firstName)
+  const lastName = contractChecker.userName(data.payload.lastName)
+  const password = contractChecker.password(data.payload.password)
 
   if (phone) {
     //Error if no attributes to update
@@ -218,11 +188,7 @@ handler._users.put = function (data, callback) {
 // Required data: phone
 handler._users.delete = function (data, callback) {
   //Check that the phone number is valid
-  const phone =
-    typeof data.queryStringObject.get("phone") == "string" &&
-    data.queryStringObject.get("phone").trim().length === 11
-      ? data.queryStringObject.get("phone").trim()
-      : false;
+  const phone = contractChecker.phone(data.queryStringObject.get("phone"))
   if (phone) {
     //Get the token from headers
     const token =
@@ -302,16 +268,9 @@ handler._tokens = {};
 //Optional data: none
 handler._tokens.post = function (data, callback) {
   //Check that all required fields are filled out
-  const phone =
-    typeof data.payload.phone == "string" &&
-    data.payload.phone.trim().length === 11 // check this line to integrate a universal use of phone numbers
-      ? data.payload.phone.trim()
-      : false;
-  const password =
-    typeof data.payload.password == "string" &&
-    data.payload.password.trim().length > 0
-      ? data.payload.password.trim()
-      : false;
+  const phone = contractChecker.phone(data.payload.phone)
+  const password = contractChecker.password(data.payload.password)
+
   if (password && phone) {
     //Make sure that the user doesnt already exist
     _data.read("users", phone, function (err, userData) {
@@ -356,11 +315,8 @@ handler._tokens.post = function (data, callback) {
 // Optional data: none
 handler._tokens.get = function (data, callback) {
   //Check that the id is valid
-  const id =
-    typeof data.queryStringObject.get("id") == "string" &&
-    data.queryStringObject.get("id").trim().length === 20
-      ? data.queryStringObject.get("id").trim()
-      : false;
+  const id = contractChecker.token(data.queryStringObject.get("id"))
+
   if (id) {
     // Look up the token
     _data.read("tokens", id, function (err, tokenData) {
@@ -379,10 +335,8 @@ handler._tokens.get = function (data, callback) {
 //Optional data: none
 handler._tokens.put = function (data, callback) {
   //Check that the id is valid
-  const id =
-    typeof data.payload.id == "string" && data.payload.id.trim().length === 20
-      ? data.payload.id.trim()
-      : false;
+  const id = contractChecker.token(data.payload.id)
+
   const extend = data.payload.extend === true;
   // Check for the optional fields
   if (id && extend) {
@@ -419,11 +373,8 @@ handler._tokens.put = function (data, callback) {
 // Required data: id
 handler._tokens.delete = function (data, callback) {
   //Check that the id is valid
-  const id =
-    typeof data.queryStringObject.get("id") == "string" &&
-    data.queryStringObject.get("id").trim().length === 20
-      ? data.queryStringObject.get("id").trim()
-      : false;
+  const id = contractChecker.token(data.queryStringObject.get("id"))
+  
   if (id) {
     // Look up the token
     _data.read("tokens", id, function (err, tokenData) {
