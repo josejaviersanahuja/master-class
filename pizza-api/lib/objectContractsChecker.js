@@ -6,13 +6,15 @@
 const util = require('util')
 const https = require('https')
 const debug = util.debuglog('objectContractsChecker')
+const menuPizzas = require('../.data/menu/menuPizzas.json')
+const menuDrinks = require('../.data/menu/menuDrinks.json')
 
 //Creating module object
 const lib = {}
 
 // Check NAMES
 // receives a name and checks that is string and not empty
-lib.userName =  function(rawUserName){
+lib.notEmptyString =  function(rawUserName){
     if (typeof rawUserName == "string" &&
     rawUserName.trim().length > 0) {
         return rawUserName.trim()
@@ -93,14 +95,14 @@ lib.email = function(email, callback){
               const finalObject = JSON.parse(data)
               if (finalObject.deliverability === "DELIVERABLE") {
                   callback(true)
-                  console.log('Email Verified');
+                  debug('Email Verified');
               } else {
                   callback(false)
-                  console.log('Email is not OK');
+                  debug('Email is not OK');
               }
             })
         }else{
-            console.log('Status code returned was: '+status)
+            debug('Status code returned was: '+status)
         }
     })
 
@@ -111,6 +113,67 @@ lib.email = function(email, callback){
 
     //End the request
     req.end()
+}
+
+//Item validation for shopping cart
+// constants
+//allProductsId= [ 'margarita', 'hawaian', 'american', 'coke', '7up', 'water', 'beer' ]
+const allProductsId = Object.keys(menuPizzas).concat(Object.keys(menuDrinks))
+const allSizes =["small", "medium", "large"]
+const allProducts ={
+    ...menuDrinks,
+    ...menuPizzas
+}
+// check if the item exists in the menu
+lib.shoppingItemId = function(item){
+    if (typeof item == 'string') {
+        if (allProductsId.includes(item.toLowerCase())) {
+            return item.toLowerCase()
+        } else {
+            debug('The item doesn´t exist or is spelled wrongly');
+            return false
+        }
+    } else {
+        return false
+    }
+}
+// check if the size comply the format
+// pending to check if this size exists for certain item.
+lib.shoppingItemSize = function(size){
+    if (typeof size == 'string') {
+        if (allSizes.includes(size.toLowerCase())) {
+            return size.toLowerCase()
+        } else {
+            debug('The size doesn´t exist or is spelled wrongly');
+            return false
+        }
+    } else {
+        return false
+    }
+}
+//check if the whole object exist
+lib.shoppingObject = function(item, size, note=false){
+    //console.log(allProducts[item].size[size],'en shopping Object creator');
+    if (typeof (allProducts[item].size[size]) == 'object' && allProducts[item].size[size].price) {
+        if (note) {
+            const finalObject = {
+                id:item,
+                size:size,
+                price:allProducts[item].size[size].price,
+                note:note
+            }
+            return finalObject
+        } else {
+            const finalObject = {
+                id:item,
+                size:size,
+                price:allProducts[item].size[size].price
+            }
+            return finalObject
+        }
+    } else {
+        return false
+    }
 }
 //Exporting module
 module.exports = lib

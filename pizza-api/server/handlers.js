@@ -9,6 +9,8 @@ const { type } = require("os");
 const _data = require("../lib/data");
 const helpers = require("../lib/helpers");
 const contractChecker = require('../lib/objectContractsChecker')
+const menuPizzas = require('../.data/menu/menuPizzas.json')
+const menuDrinks = require('../.data/menu/menuDrinks.json')
 
 //defining CONST handlers and router
 const handler = {};
@@ -41,9 +43,9 @@ handler._users = {};
 //Optional data: none
 handler._users.post = function (data, callback) {
   //Check that all required fields are filled out
-  const name = contractChecker.userName(data.payload.name)
-  const address = contractChecker.userName(data.payload.address)
-  const streetAddress = contractChecker.userName(data.payload.streetAddress)
+  const name = contractChecker.notEmptyString(data.payload.name)
+  const address = contractChecker.notEmptyString(data.payload.address)
+  const streetAddress = contractChecker.notEmptyString(data.payload.streetAddress)
   const password = contractChecker.password(data.payload.password)
   
   if (name &&  address && streetAddress && password) {
@@ -91,20 +93,20 @@ handler._users.post = function (data, callback) {
   }
 };
 //users-get
-// Required data: phone
+// Required data: email
 // Optional data: none
 handler._users.get = function (data, callback) {
   //Check that the phone number is valid
-  const phone = contractChecker.phone(data.queryStringObject.get("phone"))
-  if (phone) {
-    //Get the token from headers
+  const email = contractChecker.notEmptyString(data.queryStringObject.get("email"))
+  if (email) {
+    //Get the loggin token from headers
     const token =
       typeof data.headers.token == "string" ? data.headers.token : false;
 
-    handler._tokens.verifyToken(token, phone, function (tokenIsValid) {
+    handler._logging.verifyToken(token, email, function (tokenIsValid) {
       if (tokenIsValid) {
         // Look up the user
-        _data.read("users", phone, function (err, data) {
+        _data.read("users", email, function (err, data) {
           if (!err && data) {
             // removed the hashed password from the user object
             delete data.hashedPassword;
@@ -115,7 +117,7 @@ handler._users.get = function (data, callback) {
         });
       } else {
         callback(403, {
-          Error: "Missing required field token in headers or token invalid",
+          Error: "Missing required field, or token in headers, or token invalid",
         });
       }
     });
@@ -124,41 +126,45 @@ handler._users.get = function (data, callback) {
   }
 };
 //users-put
-//Required data: phone + 1 optional data
-//Optional data: firstName, lastName, password
+//Required data: email + 1 optional data
+//Optional data: name, address, streetAddress, password
 handler._users.put = function (data, callback) {
   // Check the required fields
-  const phone = contractChecker.phone(data.payload.phone)
+  const email = contractChecker.notEmptyString(data.payload.email)
 
   // Check for the optional fields
-  const firstName = contractChecker.userName(data.payload.firstName)
-  const lastName = contractChecker.userName(data.payload.lastName)
+  const name = contractChecker.notEmptyString(data.payload.name)
+  const address = contractChecker.notEmptyString(data.payload.address)
+  const streetAddress = contractChecker.notEmptyString(data.payload.streetAddress)
   const password = contractChecker.password(data.payload.password)
 
-  if (phone) {
+  if (email) {
     //Error if no attributes to update
-    if (firstName || lastName || password) {
+    if (name || address || streetAddress || password) {
       //Get the token from headers
       const token =
         typeof data.headers.token == "string" ? data.headers.token : false;
 
-      handler._tokens.verifyToken(token, phone, function (tokenIsValid) {
+      handler._logging.verifyToken(token, email, function (tokenIsValid) {
         if (tokenIsValid) {
           // Look up the user
-          _data.read("users", phone, function (err, userData) {
+          _data.read("users", email, function (err, userData) {
             if (!err && userData) {
-              if (firstName) {
-                userData.firstName = firstName;
+              if (name) {
+                userData.name = name;
               }
-              if (lastName) {
-                userData.lastName = lastName;
+              if (address) {
+                userData.address = address;
+              }
+              if (streetAddress) {
+                userData.streetAddress = streetAddress;
               }
               if (password) {
                 userData.hashedPassword = helpers.hash(password);
               }
 
               // persist new data
-              _data.update("users", phone, userData, function (err) {
+              _data.update("users", email, userData, function (err) {
                 if (!err) {
                   callback(200);
                 } else {
@@ -172,7 +178,7 @@ handler._users.put = function (data, callback) {
           });
         } else {
           callback(403, {
-            Error: "Missing required field token in headers or token invalid",
+            Error: "Missing required field, token in headers, or token invalid",
           });
         }
       });
@@ -185,47 +191,39 @@ handler._users.put = function (data, callback) {
 };
 
 //users-delete
-// Required data: phone
+// Required data: email
 handler._users.delete = function (data, callback) {
   //Check that the phone number is valid
-  const phone = contractChecker.phone(data.queryStringObject.get("phone"))
-  if (phone) {
+  const email = contractChecker.notEmptyString(data.queryStringObject.get("email"))
+  if (email) {
     //Get the token from headers
     const token =
       typeof data.headers.token == "string" ? data.headers.token : false;
 
-    handler._tokens.verifyToken(token, phone, function (tokenIsValid) {
+    handler._logging.verifyToken(token, email, function (tokenIsValid) {
       if (tokenIsValid) {
         // Look up the user
-        _data.read("users", phone, function (err, data) {
+        _data.read("users", email, function (err, data) {
           if (!err && data) {
-            const userChecks = Array.isArray(data.checks) ? data.checks : [];
-            _data.delete("users", phone, function (err) {
+            const userCurrentToken = data.sessionToken.token
+            _data.delete("users", email, function (err) {
               if (!err) {
-                // Delete Checks
-                if (userChecks.length > 0) {
-                  let deletedChecksCountDown = userChecks.length;
-                  let deletionErrors = false;
-                  userChecks.forEach((id) => {
-                    //Delete by id
-                    _data.delete("checks", id, function (err) {
+                // Delete currentLoggedIn token
+                if (userCurrentToken.length > 0) {
+                    //Delete the token
+                    _data.delete("currentlyLoggedIn", userCurrentToken, function (err) {
                       if (!err) {
-                        deletedChecksCountDown = deletedChecksCountDown - 1;
+                        callback(200)
                       } else {
-                        deletionErrors = true;
-                      }
-                      if (!deletionErrors && deletedChecksCountDown === 0) {
-                        callback(200);
-                      } 
-                      if (deletionErrors && deletedChecksCountDown === 0){
                         callback(500, {
-                          Error: "Not all checks of the user, were deleted",
-                        });
+                          Error: "couldn´t delete currentlyLoggedIn token",
+                        }); 
                       }
-                    });
                   });
                 } else {
-                  callback(200);
+                  callback(500, {
+                    Error:'The  token is empty, couldn´t find the token file to delete it'
+                  })
                 }
               } else {
                 callback(500, { Error: "Could not delete the specified user" });
@@ -237,7 +235,7 @@ handler._users.delete = function (data, callback) {
         });
       } else {
         callback(403, {
-          Error: "Missing required field token in headers or token invalid",
+          Error: "Missing required field, token in headers, or token invalid",
         });
       }
     });
@@ -247,33 +245,33 @@ handler._users.delete = function (data, callback) {
 };
 
 //************************************************
-// TOKENS
+//                logging
 //********************************************* */
 
-handler.tokens = function (data, callback) {
+handler.logging = function (data, callback) {
   //figure out which methods to trigger
   const acceptableMethods = ["post", "get", "put", "delete"];
   if (acceptableMethods.includes(data.method)) {
-    handler._tokens[data.method](data, callback);
+    handler._logging[data.method](data, callback);
   } else {
     callback(405); // the method is not acceptable
   }
 };
 
 // handler._tokens is a container of private methods that should be hidden for everybody, but available for the main methods handler.tokens
-handler._tokens = {};
+handler._logging = {};
 
 // tokens-post
 //Required data: phone, password
 //Optional data: none
-handler._tokens.post = function (data, callback) {
+handler._logging.post = function (data, callback) {
   //Check that all required fields are filled out
-  const phone = contractChecker.phone(data.payload.phone)
+  const email = contractChecker.notEmptyString(data.payload.email)
   const password = contractChecker.password(data.payload.password)
 
-  if (password && phone) {
-    //Make sure that the user doesnt already exist
-    _data.read("users", phone, function (err, userData) {
+  if (password && email) {
+    //Make sure that the user already exist
+    _data.read("users", email, function (err, userData) {
       if (!err && userData) {
         // Hash the password
         const hashedPasswor = helpers.hash(password);
@@ -283,17 +281,28 @@ handler._tokens.post = function (data, callback) {
           const expires = Date.now() + 1000 * 60 * 60;
 
           const tokenObject = {
-            phone: phone,
-            id: tokenID,
+            email: email,
+            token: tokenID,
             expires: expires,
           };
 
-          //Store the token
-          _data.create("tokens", tokenID, tokenObject, function (err) {
+          //Store the token en currentlyLoggedIn
+          _data.create("currentlyLoggedIn", tokenID, tokenObject, function (err) {
             if (!err) {
-              callback(200, tokenObject);
+               //create the log in session in the user
+              userData.sessionToken = {
+                token:tokenID,
+                expires:expires
+              }
+              _data.update('users', email, userData, function(err){
+                if (!err) {
+                  callback(200, {currentlyLoggedIn: tokenObject, user: userData})
+                } else {
+                  callback(500, {Error: "Problem updating user loggin session"})
+                }
+              })
             } else {
-              callback(500, { Error: "Could not create the token" });
+              callback(500, { Error: "Could not create the login token" });
             }
           });
         } else {
@@ -302,7 +311,7 @@ handler._tokens.post = function (data, callback) {
           });
         }
       } else {
-        console.log(userData);
+        // console.log(userData);
         callback(400, { Error: "Could not find specified user", err });
       }
     });
@@ -311,15 +320,16 @@ handler._tokens.post = function (data, callback) {
   }
 };
 // tokens-get
-// Required data: id
+// Required data: token
 // Optional data: none
-handler._tokens.get = function (data, callback) {
+// @TODO check if this method will be open for everybody or we need to create a security requirement
+handler._logging.get = function (data, callback) {
   //Check that the id is valid
-  const id = contractChecker.token(data.queryStringObject.get("id"))
+  const token = contractChecker.token(data.queryStringObject.get("token"))
 
-  if (id) {
+  if (token) {
     // Look up the token
-    _data.read("tokens", id, function (err, tokenData) {
+    _data.read("currentlyLoggedIn", token, function (err, tokenData) {
       if (!err && tokenData) {
         callback(200, tokenData);
       } else {
@@ -331,28 +341,43 @@ handler._tokens.get = function (data, callback) {
   }
 };
 //tokens-put
-//Required data: id, extend
+//Required data: token, extend
 //Optional data: none
-handler._tokens.put = function (data, callback) {
+// @TODO check if this method will be open for everybody or we need to create a security requirement
+handler._logging.put = function (data, callback) {
   //Check that the id is valid
-  const id = contractChecker.token(data.payload.id)
+  const token = contractChecker.token(data.payload.token)
 
   const extend = data.payload.extend === true;
   // Check for the optional fields
-  if (id && extend) {
+  if (token && extend) {
     // Look up the token
-    _data.read("tokens", id, function (err, tokenData) {
+    _data.read("currentlyLoggedIn", token, function (err, tokenData) {
       if (!err && tokenData) {
         // check that the token is still valid
         if (tokenData.expires > Date.now()) {
           // set the new extension
-          tokenData.expires = Date.now() + 1000 * 60 * 60;
+           const newExpire= Date.now() + 1000 * 60 * 60;
+           tokenData.expires =newExpire
           //store the token again
-          _data.update("tokens", id, tokenData, function (err) {
+          _data.update("currentlyLoggedIn", token, tokenData, function (err) {
             if (!err) {
-              callback(200, { Message: "Token valid for 1 more hour" });
+              _data.read("users", tokenData.email, function(err, userData){
+                if (!err && userData) {
+                  userData.sessionToken.expires=newExpire
+                  _data.update("users", tokenData.email, userData, function(err){
+                    if (!err) {
+                      callback(200, {message:'Session extended for 1 more hour'})
+                    } else {
+                      callback(500, {Error:'Could not update the extended session in users'})
+                    }
+                  })
+                } else {
+                  callback(500, {Error:'Could not get into the users data to extend the token'})
+                }
+              })
             } else {
-              callback(500, { Error: "Could not extend the token" });
+              callback(500, { Error: "Could not extend the token in currentlyLoggedIn folder" });
             }
           });
         } else {
@@ -365,24 +390,40 @@ handler._tokens.put = function (data, callback) {
       }
     });
   } else {
-    callback(400, { Error: "Missing required fields or they are invalid" });
+    callback(400, { Error: "Missing required fields, or they are invalid" });
   }
 };
 
-// tokens-delete
-// Required data: id
-handler._tokens.delete = function (data, callback) {
+// logging-delete (equivalent to log out)
+// Required data: token
+//@TODO watcher to log out automaticly when timeout
+handler._logging.delete = function (data, callback) {
   //Check that the id is valid
-  const id = contractChecker.token(data.queryStringObject.get("id"))
+  const token = contractChecker.token(data.queryStringObject.get("token"))
   
-  if (id) {
+  if (token) {
     // Look up the token
-    _data.read("tokens", id, function (err, tokenData) {
+    _data.read("currentlyLoggedIn", token, function (err, tokenData) {
       if (!err && tokenData) {
         // delete the file
-        _data.delete("tokens", id, function (err) {
+        const email = tokenData.email
+        _data.delete("currentlyLoggedIn", token, function (err) {
           if (!err) {
-            callback(200);
+            _data.read('users', email, function(err, userData){
+              if (!err && userData) {
+                userData.lastSession = Date.now()
+                userData.sessionToken = false
+                _data.update('users', email, userData, function(err){
+                  if (!err) {
+                    callback(200)
+                  } else {
+                    callback(500, {Error:'Couldn´t update the user data logging information'})
+                  }
+                })
+              } else {
+                callback(500, {Error:'Couldn´t get into the user´s data to change users loggin information'})
+              }
+            })
           } else {
             callback(500, { Error: "Could not delete the specified token" });
           }
@@ -396,12 +437,14 @@ handler._tokens.delete = function (data, callback) {
   }
 };
 
-handler._tokens.verifyToken = function (id, phone, booleanCallback) {
+// requires: token, email
+// This method verifies if the user with the email is currently logged in
+handler._logging.verifyToken = function (id, email, booleanCallback) {
   //look up the token
-  _data.read("tokens", id, function (err, tokenData) {
+  _data.read("currentlyLoggedIn", id, function (err, tokenData) {
     if (!err && tokenData) {
       //Check if the token is for the current user
-      if (tokenData.phone === phone && tokenData.expires > Date.now()) {
+      if (tokenData.email === email && tokenData.expires > Date.now()) {
         booleanCallback(true);
       } else {
         booleanCallback(false);
@@ -412,4 +455,195 @@ handler._tokens.verifyToken = function (id, phone, booleanCallback) {
   });
 };
 
+//************************************************
+//                Menu
+//********************************************* */
+
+// data required: email and a sessionToken (only a logged in user)
+handler.menu = function (data, callback) {
+  //figure out which methods to trigger
+  const acceptableMethods = ["get"];
+  if (acceptableMethods.includes(data.method)) {
+    // check entry data
+    const email = contractChecker.notEmptyString(data.queryStringObject.get('email'))
+    const token = contractChecker.token(data.queryStringObject.get('token'))
+    if (email && token) {
+      //Check if the user is logged in
+      handler._logging.verifyToken(token, email, function(isLoggedIn){
+        if (isLoggedIn) {
+          //return the menu, so user can check it
+          callback(200, {menuPizzas, menuDrinks})
+        } else {
+          callback(400, {Error:'user or token not found, or user is not logged in. please log in and repeat the request'})
+        }
+      })
+    } else {
+      callback(400,{Error:'Bad request. Parameters didn´t filled contract requirement'})
+    }
+    
+  } else {
+    callback(405, {Error:'This endpoint only accepts GET method'}); // the method is not acceptable
+  }
+};
+
+//************************************************
+//                shoppingCart
+//********************************************* */
+handler.shoppingcart = function (data, callback) {
+  //figure out which methods to trigger
+  const acceptableMethods = ["post", "get", "put", "delete"];
+  if (acceptableMethods.includes(data.method)) {
+    handler._shoppingcart[data.method](data, callback);
+  } else {
+    callback(405); // the method is not acceptable
+  }
+};
+
+//
+handler._shoppingcart={}
+//require headers: token
+//require data: valid Item id, valid size, email
+//optional data: note i.e. : 'i don´t want pineapples in my hawaian pizza'
+handler._shoppingcart.post = function(data,callback){
+  const item = contractChecker.shoppingItemId(data.payload.item)
+  const size = contractChecker.shoppingItemSize(data.payload.size)
+  const note = contractChecker.notEmptyString(data.payload.note)
+  const buyableObject = contractChecker.shoppingObject(item, size, note)
+  const email = contractChecker.notEmptyString(data.payload.email)
+  const token = contractChecker.token(data.headers.token)
+  // simple check if payload was sent
+  if (item && size) {
+    // complex check if the payload item+size exists
+    if (buyableObject) {
+      //simple check if email an token was sent
+      if (email && token) {
+        //complex check if the user is logged in
+        handler._logging.verifyToken(token,email, function(isValidToken){
+          if (isValidToken) {
+             buyableObject.date = Date.now()
+            _data.read('users', email, function(err, userData){
+              if (!err && userData) {
+                // now that we have the user we add the product to user´s shopping cart
+                const shoppingCart = Array.isArray(userData.shoppingCart) ? [...userData.shoppingCart] : []
+                shoppingCart.push(buyableObject)
+                userData.shoppingCart = shoppingCart
+                _data.update('users', email, userData, function(err){
+                  if (!err) {
+                    callback(200, buyableObject)
+                  } else {
+                    callback(500,{Error:'Failed adding the product to the shoppingCart'})
+                  }
+                })
+              } else {
+                callback(500,{Error:'Couldn´t open the user´s data'})
+              }
+            })                              
+          } else {
+            callback(403,{Error:'log in again as login token is not valid'})
+          }
+        }) 
+      } else {
+        callback(400, {Error:'no email, or token doesn´t fill the format, or missing token'})
+      }
+    } else {
+      callback(400, {Error:'The item´s size doen´t exist in the menu'})
+    }
+  } else {
+    callback(400, {Error:'The item doesn´t exist, or the size doesn´t exist, '})
+  }
+}
+
+//shoppingcart get
+//required data: email
+//headers.token (logged in user)
+handler._shoppingcart.get = function(data, callback){
+  // normal requirement checker
+  const email = contractChecker.notEmptyString(data.queryStringObject.get('email'))
+  const token = contractChecker.token(data.headers.token)
+  
+  if (email && token) {
+    //stronger check if user is logged in
+    handler._logging.verifyToken(token, email, function(isValidToken){
+      if (isValidToken) {
+        _data.read('users', email, function(err, userData){
+          if (!err && userData) {
+            if (Array.isArray(userData.shoppingCart)) {
+              callback(200, userData.shoppingCart)
+            } else {
+              userData.shoppingCart=[]
+              callback(200, userData.shoppingCart)
+            }
+          } else {
+            callback(500,{Error:'Couldn´t read user´s data'})
+          }
+        })
+      } else {
+        callback(400,{Error:'user is not correctly logged in, or token expired. Log in and try again'})
+      }
+    })
+  } else {
+    callback(400,{Error:'email and login token didn´t pass the contract, or token is missing in headers'})
+  }
+}
+
+//shoppingCart delete the whole cart
+// as get, just receives email and token
+handler._shoppingcart.delete = function(data, callback){
+  const email = contractChecker.notEmptyString(data.queryStringObject.get('email'))
+  const token = contractChecker.token(data.headers.token)
+  //simple check
+  if (email&&token) {
+    //check if user is logged in correctly
+    handler._logging.verifyToken(token, email, function(isValidToken){
+      if (isValidToken) {
+        _data.read('users', email, function(err, userData){
+          if (!err && userData) {
+            userData.shoppingCart=[]
+            _data.update('users', email, userData, function(err){
+              if (!err) {
+                callback(200, {message:'shopping cart is now empty'})
+              } else {
+                callback(500, {Error:'during empting the shopping cart'})
+              }
+            })
+          } else {
+            callback(500,{Error:'reading users data.'})
+          }
+        })
+      } else {
+        callback(400,{Error:'User is not logged in correctly or token has expired'})
+      }
+    })
+  } else {
+    callback(400,{Error:'email and login token didn´t pass the contract check, or token missing in headers'})
+  }
+}
+//Export module
 module.exports = handler;
+
+/**
+ * //create the order id
+            //@TODO create order watcher for the kitchen
+            _data.list('orderID',function(err, orderList){
+              if (!err) {
+                // if its the first order, the id will be 0001
+                let orderId =''
+                if (orderList.length===0) {
+                  orderId = '0001'
+                } else {
+                  // if its not the first order the id will be the previous +1
+                  const lastOrderId = orderList[orderList.length-1]
+                  orderId = helpers.createOrderId(lastOrderId)  
+                }
+                _data.create('orderID', orderId, buyableObject, function(err){
+                  if (!err) {
+                    //we continue with the user
+                  } else {
+
+                  }
+                })
+              } else {
+
+              }
+            })
+ */

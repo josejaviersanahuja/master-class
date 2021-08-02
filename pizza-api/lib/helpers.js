@@ -154,5 +154,29 @@ helpers.verifyEmail = function(email, callback){
     req.end()
 }
 
+// helper para parsear un numero (0,999) a string
+helpers.createOrderId = function(stringNumber){
+    const newOrderId = parseInt(stringNumber, 10) +1
+    if(newOrderId <10){
+        return `000${newOrderId}`
+    }
+    if(newOrderId <100 && newOrderId >9){
+        return `00${newOrderId}`
+    }
+    if(newOrderId <1000 && newOrderId >99){
+        return `0${newOrderId}`
+    }
+    if(newOrderId === 1000){
+        return '1000'
+    }
+    if(newOrderId > 1000){
+        const resto = newOrderId % 1000
+        return `000${resto}`
+    }
+    if(newOrderId<=0){
+        return '0000'
+    }
+
+}
 // Export the module
 module.exports = helpers

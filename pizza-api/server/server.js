@@ -106,8 +106,10 @@ const server = {}
 server.router = {
     ping: handler.ping,
     users: handler.users,
-    tokens: handler.tokens,
-    notFound: handler.notFound
+    logging: handler.logging,
+    notFound: handler.notFound,
+    menu: handler.menu,
+    shoppingcart: handler.shoppingcart
   };
 
 //------------------------------------------------------------------------------------------------------------
