@@ -14,10 +14,10 @@ const lib = {}
 
 // Check NAMES
 // receives a name and checks that is string and not empty
-lib.notEmptyString =  function(rawUserName){
-    if (typeof rawUserName == "string" &&
-    rawUserName.trim().length > 0) {
-        return rawUserName.trim()
+lib.notEmptyString =  function(data){
+    if (typeof data == "string" &&
+    data.trim().length > 0) {
+        return data.trim()
     } else {
         debug('The name didn´t fulfiled the contract');
         return false
@@ -174,6 +174,20 @@ lib.shoppingObject = function(item, size, note=false){
     } else {
         return false
     }
+}
+
+//check if a string is a number, is an int and not negative, or a number is all that
+lib.numString = function(num){
+    const numString = num.toString()
+   var valoresAceptados = /^[0-9]+$/;
+       if (numString.match(valoresAceptados)){
+          return parseInt(numString)
+       } else {
+         debug('este string no es un numero')
+         // 0 is an acceptable index value. if we check if(index) and the value is 0, it will return false
+         // IMPORTANT the good check is : if(idex>=0)
+         return -1
+      }
 }
 //Exporting module
 module.exports = lib

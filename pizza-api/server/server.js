@@ -44,7 +44,6 @@ const server = {}
   // geth the path
   const path = parsedUrl.pathname; // http:localhost:3000/pokemon pathname would be /pokemon
   const trimmedPath = path.replace(/^\/+|\/+$/g, ""); // regex is to trimm of any extra slashes. i.e. localhost:3000/pokemon = localhost:3000/pokemon/ y cosas similares
-  
   // Get query string as an object
   const queryStringObject = parsedUrl.searchParams
 
@@ -109,7 +108,8 @@ server.router = {
     logging: handler.logging,
     notFound: handler.notFound,
     menu: handler.menu,
-    shoppingcart: handler.shoppingcart
+    shoppingcart: handler.shoppingcart,
+    "shoppingcart/item":handler.shoppingcartItem
   };
 
 //------------------------------------------------------------------------------------------------------------

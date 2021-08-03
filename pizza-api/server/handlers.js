@@ -10,7 +10,9 @@ const _data = require("../lib/data");
 const helpers = require("../lib/helpers");
 const contractChecker = require('../lib/objectContractsChecker')
 const menuPizzas = require('../.data/menu/menuPizzas.json')
-const menuDrinks = require('../.data/menu/menuDrinks.json')
+const menuDrinks = require('../.data/menu/menuDrinks.json');
+const util = require('util')
+const debug = util.debuglog('handlers')
 
 //defining CONST handlers and router
 const handler = {};
@@ -264,6 +266,7 @@ handler._logging = {};
 // tokens-post
 //Required data: phone, password
 //Optional data: none
+//@TODO don´t log in if its already logged in
 handler._logging.post = function (data, callback) {
   //Check that all required fields are filled out
   const email = contractChecker.notEmptyString(data.payload.email)
@@ -276,35 +279,54 @@ handler._logging.post = function (data, callback) {
         // Hash the password
         const hashedPasswor = helpers.hash(password);
         if (hashedPasswor === userData.hashedPassword) {
-          // create a new token with a random name and an expiration of 1 hour
-          const tokenID = helpers.createRandomString(20);
-          const expires = Date.now() + 1000 * 60 * 60;
-
-          const tokenObject = {
-            email: email,
-            token: tokenID,
-            expires: expires,
-          };
-
-          //Store the token en currentlyLoggedIn
-          _data.create("currentlyLoggedIn", tokenID, tokenObject, function (err) {
-            if (!err) {
-               //create the log in session in the user
-              userData.sessionToken = {
-                token:tokenID,
-                expires:expires
+           // check is user is currently logged in
+          if (userData.sessionToken && userData.sessionToken.expires > Date.now()) {
+            //we shouldn´t allow a new login
+            _data.read('currentlyLoggedIn', userData.sessionToken.token, function(err, tokenData){
+              if (!err && tokenData) {
+                callback(400,{Error:'User seems to have a valid login token. No need to logging again'})
+              } else {
+                userData.sessionToken=false
+                _data.update('users', userData, function(err){
+                  if (!err) {
+                    callback(500,{Error:'There was a logging error that should be fixed by now. Please log in again'})
+                  } else {
+                    callback(500,{Error:'There was a logging error, try again and if its not fixed, contact the provider.'})
+                  }
+                })
               }
-              _data.update('users', email, userData, function(err){
-                if (!err) {
-                  callback(200, {currentlyLoggedIn: tokenObject, user: userData})
-                } else {
-                  callback(500, {Error: "Problem updating user loggin session"})
+            })
+          } else {
+            // create a new token with a random name and an expiration of 1 hour
+            const tokenID = helpers.createRandomString(20);
+            const expires = Date.now() + 1000 * 60 * 60;
+
+            const tokenObject = {
+              email: email,
+              token: tokenID,
+              expires: expires,
+            };
+
+            //Store the token en currentlyLoggedIn
+            _data.create("currentlyLoggedIn", tokenID, tokenObject, function (err) {
+              if (!err) {
+                //create the log in session in the user
+                userData.sessionToken = {
+                  token:tokenID,
+                  expires:expires
                 }
-              })
-            } else {
-              callback(500, { Error: "Could not create the login token" });
-            }
-          });
+                _data.update('users', email, userData, function(err){
+                  if (!err) {
+                    callback(200, {currentlyLoggedIn: tokenObject, user: userData})
+                  } else {
+                    callback(500, {Error: "Problem updating user loggin session"})
+                  }
+                })
+              } else {
+                callback(500, { Error: "Could not create the login token" });
+              }
+            }); 
+          }
         } else {
           callback(400, {
             Error: "Password did not match specified user password"
@@ -395,11 +417,11 @@ handler._logging.put = function (data, callback) {
 };
 
 // logging-delete (equivalent to log out)
-// Required data: token
+// Required data: token (in headers)
 //@TODO watcher to log out automaticly when timeout
 handler._logging.delete = function (data, callback) {
   //Check that the id is valid
-  const token = contractChecker.token(data.queryStringObject.get("token"))
+  const token = contractChecker.token(data.headers.token)
   
   if (token) {
     // Look up the token
@@ -445,7 +467,31 @@ handler._logging.verifyToken = function (id, email, booleanCallback) {
     if (!err && tokenData) {
       //Check if the token is for the current user
       if (tokenData.email === email && tokenData.expires > Date.now()) {
-        booleanCallback(true);
+        const newExtension = Date.now()+(1000*60*60)
+        tokenData.expires=newExtension
+        _data.read('users', email, function(err, userData){
+          if (!err && userData) {
+            if(userData.sessionToken.expires){
+              userData.sessionToken.expires=newExtension
+            }
+            _data.update('users', email, userData, function(err){
+              if (!err) {
+                _data.update('currentlyLoggedIn', id,tokenData, function(err){
+                  if (!err) {
+                    booleanCallback(true)
+                    debug('token extended in users and currentlyLoggedIn files')
+                  } else {
+                    booleanCallback(true)
+                  }
+                })
+              } else {
+                booleanCallback(true)
+              }
+            })
+          } else {
+            booleanCallback(true);
+          }
+        })
       } else {
         booleanCallback(false);
       }
@@ -491,11 +537,11 @@ handler.menu = function (data, callback) {
 //********************************************* */
 handler.shoppingcart = function (data, callback) {
   //figure out which methods to trigger
-  const acceptableMethods = ["post", "get", "put", "delete"];
+  const acceptableMethods = ["post", "get", "delete"];
   if (acceptableMethods.includes(data.method)) {
     handler._shoppingcart[data.method](data, callback);
   } else {
-    callback(405); // the method is not acceptable
+    callback(405, {message:'allowed methods are post, get and delete'}); // the method is not acceptable
   }
 };
 
@@ -524,7 +570,13 @@ handler._shoppingcart.post = function(data,callback){
             _data.read('users', email, function(err, userData){
               if (!err && userData) {
                 // now that we have the user we add the product to user´s shopping cart
-                const shoppingCart = Array.isArray(userData.shoppingCart) ? [...userData.shoppingCart] : []
+                // shoppingcart exists and has items in it? is one thing, but if its empty or doesnt exist, our let shoppingcart will be that key 
+                let shoppingCart = []
+                if (Array.isArray(userData.shoppingCart) && userData.shoppingCart.length > 0) {
+                  shoppingCart=[...userData.shoppingCart]
+                }
+                //we push the buyable object adding an index to it. with the index we can find the item if we want to mutate it or delete it
+                buyableObject.index= shoppingCart.length
                 shoppingCart.push(buyableObject)
                 userData.shoppingCart = shoppingCart
                 _data.update('users', email, userData, function(err){
@@ -618,6 +670,155 @@ handler._shoppingcart.delete = function(data, callback){
     callback(400,{Error:'email and login token didn´t pass the contract check, or token missing in headers'})
   }
 }
+
+handler.shoppingcartItem = function (data, callback) {
+  //figure out which methods to trigger
+  const acceptableMethods = ["put", "delete"];
+  if (acceptableMethods.includes(data.method)) {
+    handler._shoppingcartItem[data.method](data, callback);
+  } else {
+    callback(405,{message:'allowed methods are put and delete'}); // the method is not acceptable
+  }
+};
+
+//private method initializer
+handler._shoppingcartItem={}
+
+//required data as queryParameter: email, index (index of the product in the shoppingcart)
+//required data as header: token (in header), 
+handler._shoppingcartItem.delete = function(data, callback){
+  const email = contractChecker.notEmptyString(data.queryStringObject.get('email'))
+  const token = contractChecker.token(data.headers.token)
+  // the next checker not only checks if its a string number, its an int and not negative
+  // but returns it as a number, so index can be an int or false
+  const index = contractChecker.numString(data.queryStringObject.get('index'))
+  // quick check of the data
+  if (email && token && index>=0) {
+    // strong check if user is logged in
+    handler._logging.verifyToken(token, email, function(isValid){
+      if (isValid) {
+        // get the user
+        _data.read('users', email, function(err, userData){
+          if (!err && userData) {
+            // hard check if the index is a valid index. step 1, shoppingcart exists?
+            if (Array.isArray(userData.shoppingCart)) {
+              // index must be smaller than the shoppingcart length
+              if (userData.shoppingCart.length > index) {
+                //lets delete the item in the index index
+                const newShoppingCart = userData.shoppingCart.map(buyableObject => {
+                  // if its index is smaller, store it as it is
+                  if (buyableObject.index < index) {
+                    return buyableObject
+                  }
+                  //if its index is greater, store it with an index-1
+                  if (buyableObject.index > index) {
+                    buyableObject.index += -1
+                    return buyableObject
+                  }
+                  // if  its the exact index. do nothing
+                  if (buyableObject.index === index) {
+                    // do nothing will return null by default.
+                    return null
+                  }
+                })
+                //lets filter the null element and store it
+                userData.shoppingCart=newShoppingCart.filter(e => e!==null)
+                _data.update('users', email, userData, function(err){
+                  if (!err) {
+                    callback(200, {newshoppincart:userData.shoppingCart})
+                  } else {
+                    callback(500,{Error:'Couldn´t delete the item from the shoppingcart'})
+                  }
+                })
+              } else {
+                callback(400, {Error:'index is invalid'})
+              }
+            } else {
+              callback(400, {Error:'index is not valid as the shopping cart is empty'})
+            }
+          } else {
+            callback(500,{Error:'Couldn´t get to user´s data'})
+          }
+        })
+      } else {
+        callback(400, {Error: 'There is a problem with the log in session, please log in and try it again'})
+      }
+    })
+  } else {
+    callback(400,{Error:'required data weren´t sent or didn´t filled the contract'})
+  }
+
+}
+
+// shoppingcart/item method put
+//required data as body: email, index, item (item or id from a menu item), size  (of a menu item)
+//required data as header: token, 
+//optional in the body: note (i.e: my hawaian pizza without pineapples)
+handler._shoppingcartItem.put = function(data, callback){
+  const email = contractChecker.notEmptyString(data.payload.email) // reminder. if(index>=0)
+  const index = contractChecker.numString(data.payload.index)
+  const item = contractChecker.shoppingItemId(data.payload.item)
+  const size = contractChecker.shoppingItemSize(data.payload.size)
+  const token = contractChecker.token(data.headers.token)
+  const note = contractChecker.notEmptyString(data.payload.note)
+
+  //simple checks
+  if (email && item && size && token && index>=0) {
+    //strong check if id and size can find a real buyable item
+    const newbuyableObject = contractChecker.shoppingObject(item, size, note)
+    if (newbuyableObject) {
+      //strong check if user is logged in
+      handler._logging.verifyToken(token, email, function(isValid){
+        if (isValid) {
+          //get the user
+          _data.read('users', email, function(err, userData){
+            if (!err && userData) {
+              // hard check if the index is a valid index. step 1, shoppingcart exists?
+              if (Array.isArray(userData.shoppingCart)) {
+                // index must be smaller than the shoppingcart length
+                if (userData.shoppingCart.length > index) {
+                 //lets replace the item in the index
+                  const newShoppingCart = userData.shoppingCart.map(buyableObject => {
+                    // replace the item in position index 
+                    if (buyableObject.index === index) {
+                      newbuyableObject.index=index
+                      newbuyableObject.date= Date.now()
+                      return newbuyableObject
+                    } else {
+                      // let the rest as they are
+                      return buyableObject
+                    }
+                  })
+                  userData.shoppingCart=newShoppingCart
+                  _data.update('users', email, userData, function(err){
+                    if (!err) {
+                      callback(200, {newshoppincart:userData.shoppingCart})
+                    } else {
+                      callback(500,{Error:'Couldn´t delete the item from the shoppingcart'})
+                    }
+                  })
+                } else {
+                  callback(400, {Error:'index is invalid'})
+                }
+              } else {
+                callback(400, {Error:'index is not valid as the shopping cart is empty'})
+              } 
+            } else {
+              callback(500,{Error:'Couldnt read users data'})
+            }
+          })
+        } else {
+          callback(400,{Error:'There is a problem with the login or the token has expired, please log in and try again'})
+        }
+      })
+    } else {
+      callback(400,{Error:'There is no item with that size'})
+    }
+  } else {
+    callback(400,{Error:'required data weren´t sent or didn´t filled the contract'})
+  }
+}
+
 //Export module
 module.exports = handler;
 
