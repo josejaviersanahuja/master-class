@@ -7,7 +7,9 @@
 const server = require('./server/server')
 const {dotEnvReader} = require('./lib/dotEnvReader')
 const loggingWatcher = require('./lib/loggingWatcher')
-// app container
+const helpers = require('./lib/helpers')
+
+ // app container
 const app = {}
 
 // Initializing an app starts by initializing the server

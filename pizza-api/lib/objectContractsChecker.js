@@ -176,6 +176,23 @@ lib.shoppingObject = function(item, size, note=false){
     }
 }
 
+//check if a shopping cart is valid
+lib.shoppingCart = function(shoppingCart){
+    // 4 conditions. 1 must be an array, 2 every element must be an object, 3 every object must have a key (price) and must be a number 
+    if (Array.isArray(shoppingCart)) {
+        let isShoppingCartValid = true && shoppingCart.length > 0 
+        shoppingCart.forEach(item => {
+            isShoppingCartValid = isShoppingCartValid && typeof(item)=='object' && typeof(item.price)=='number'
+        })
+        if (isShoppingCartValid) {
+            return shoppingCart
+        } else {
+            return false
+        }
+    } else {
+        return false
+    }
+}
 //check if a string is a number, is an int and not negative, or a number is all that
 lib.numString = function(num){
     const numString = num.toString()

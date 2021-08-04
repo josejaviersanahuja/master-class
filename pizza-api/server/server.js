@@ -109,7 +109,8 @@ server.router = {
     notFound: handler.notFound,
     menu: handler.menu,
     shoppingcart: handler.shoppingcart,
-    "shoppingcart/item":handler.shoppingcartItem
+    "shoppingcart/item":handler.shoppingcartItem,
+    checkout:handler.checkout
   };
 
 //------------------------------------------------------------------------------------------------------------

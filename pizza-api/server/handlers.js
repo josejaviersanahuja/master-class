@@ -819,32 +819,87 @@ handler._shoppingcartItem.put = function(data, callback){
   }
 }
 
+// end point for payment
+//requires in body: email, shoppingCart
+//requires in headers: token
+handler.checkout = function (data, callback) {
+  //figure out which methods to trigger
+  const acceptableMethods = ["post"];
+  if (acceptableMethods.includes(data.method)) {
+    //check data entries
+    const email = contractChecker.notEmptyString(data.payload.email)
+    const token = contractChecker.token(data.headers.token)
+    const shoppingCart = contractChecker.shoppingCart(data.payload.shoppingCart)
+
+    //after the first check
+    if (email && token && shoppingCart) {
+      //Verify that the user is logged in correctly
+      handler._logging.verifyToken(token, email, function(isValid){
+        if (isValid) {
+          //@TODO we need to add a _data read user y coger su shoppingcart en vez de pasar por parametros
+          //Lets create a new orderID
+          _data.list('orderID',function(err, orderList){
+            if (!err) {
+              let orderId =''
+              // if its the first order, the id will be 0001
+              if (orderList.length===0) {
+                orderId = '0001'
+              } else {
+                // if its not the first order the id will be the previous +1
+                const lastOrderId = orderList[orderList.length-1]
+                //method in helpers createOrderId returns the next orderId
+                orderId = helpers.createOrderId(lastOrderId)
+              }
+              // now lets get the total price to pay (shoppingCart past the contractChecker so is an array of objects with keys price and are numbers)
+              let amountToPay = 0
+              shoppingCart.forEach(item => {
+                // stripe only works with cents
+                amountToPay+= (item.price*100)
+              })
+              //now with order ID and the amountToPay, we can request the Payment to stripe
+              helpers.stripePayment(amountToPay, orderId, shoppingCart, callback, _data.create, email, _data.update, _data.read)
+            } else {
+              callback(500,{Error:'Internal error creating a new order ID'})
+            }
+          })
+        } else {
+          callback(400, {Error:'There is a problem with the login or the token has expired, please log in and try again'})
+        }
+      })
+    } else {
+      callback(400, {Error:'required data weren´t sent or didn´t filled the contract'} )
+    }
+
+  } else {
+    callback(405,{message:'The only allowed method is POST'}); // the method is not acceptable
+  }
+};
 //Export module
 module.exports = handler;
 
 /**
  * //create the order id
             //@TODO create order watcher for the kitchen
-            _data.list('orderID',function(err, orderList){
-              if (!err) {
-                // if its the first order, the id will be 0001
-                let orderId =''
-                if (orderList.length===0) {
-                  orderId = '0001'
-                } else {
-                  // if its not the first order the id will be the previous +1
-                  const lastOrderId = orderList[orderList.length-1]
-                  orderId = helpers.createOrderId(lastOrderId)  
-                }
-                _data.create('orderID', orderId, buyableObject, function(err){
-                  if (!err) {
-                    //we continue with the user
-                  } else {
+_data.list('orderID',function(err, orderList){
+  if (!err) {
+    // if its the first order, the id will be 0001
+    let orderId =''
+    if (orderList.length===0) {
+      orderId = '0001'
+    } else {
+      // if its not the first order the id will be the previous +1
+      const lastOrderId = orderList[orderList.length-1]
+      orderId = helpers.createOrderId(lastOrderId)  
+    }
+    _data.create('orderID', orderId, buyableObject, function(err){
+      if (!err) {
+        //we continue with the user
+      } else {
 
-                  }
-                })
-              } else {
+      }
+    })
+  } else {
 
-              }
-            })
+  }
+})
  */

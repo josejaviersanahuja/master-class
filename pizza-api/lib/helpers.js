@@ -6,8 +6,7 @@ const crypto = require('crypto')
 const config = require('../config')
 const https = require('https')
 const querystring = require('querystring')
-const path = require('path')
-const fs = require('fs')
+const _data = require('./data')
 
 //container for all helpers
 const helpers = {}
@@ -177,6 +176,88 @@ helpers.createOrderId = function(stringNumber){
         return '0000'
     }
 
+}
+
+//CHECKOUT PAYMENT WITH STRIPE
+helpers.stripePayment = function(amount, orderID,shoppingCart, callback, dataCreateCallback, email, dataUpdateCallback, dataReadCallback){
+    
+    const payload ={
+        amount:amount,
+        currency:'usd',
+        source:'tok_visa',
+        description:'Order for ' + orderID
+    }
+    
+    const stringPayload = querystring.stringify(payload)
+
+    const requestDetails = {
+        'protocol': 'https:',
+        'hostname': 'api.stripe.com',
+        'method': 'POST',
+        'path': `/v1/charges`,
+        'auth': process.env.STRIPE_KEY,
+        'headers':{
+            'Content-Type':'application/x-www-form-urlencoded',
+            'Content-Length': Buffer.byteLength(stringPayload)
+        }
+    }
+    // Instantiate the request object
+    const req = https.request(requestDetails ,function(res){
+        //Grab the status of the sent request
+        const status = res.statusCode
+        let data = ''
+        // Callback succesfully if the request went through
+        if(status == 200 || status == 201 ){
+            res.on('data', function(chunk){
+              data+=chunk
+            })
+
+            res.on('end', function(){
+                //get the response
+              const finalObjectResponse = JSON.parse(data)
+              console.log('\x1b[32m%s\x1b[0m','Payment went through, status code: ', status);
+                // store the order payment
+                const orderObject = {
+                    orderID:orderID,
+                    shoppingCart: shoppingCart, 
+                    statusCode:status, 
+                    paymentStatus:finalObjectResponse
+                }
+              dataCreateCallback('orderId', orderID, orderObject, function(err){
+                  if (!err) {
+                    console.log('\x1b[32m%s\x1b[0m','OrderId has been stored correctly in folder .data/orderId: ');
+                    //lets get the users shoppingcart and 
+                    dataReadCallback('users', email,function(err, userData){
+                        if (!err && userData) {
+                            userData.shoppingCart = []
+                        } else {
+                            callback(status, {Message:'order number: ' + orderID +' was stored correctly but the users shopping cart hasn´t been cleaned'})
+                        }
+                    })
+                    
+                  } else {
+                    console.log('\x1b[31m%s\x1b[0m','There was a problem storing the orderId: '+orderID);
+                    callback(status, finalObjectResponse)
+                  }
+              })
+            })
+        }else{
+            console.log('Status code returned was: '+status, res.statusMessage)
+            callback(status, {"message":"Something went wrong with the payment"})
+        }
+    })
+
+    // Bind to the error event
+    req.on('error', function(e){
+        console.error(e);
+        callback(403, {ErrorOnRequest:e})
+    })
+
+    //adding payload
+    req.write(stringPayload)
+
+    //End the request
+    req.end()
 }
 // Export the module
 module.exports = helpers
