@@ -15,6 +15,9 @@
 <p>
 <b>objectContractChecker:</b> Checking all entry data in every endpoint and method, generates repetitive line codes. I created some general check to prevent repetitive code.
 </p>
+<p>
+<b>Email Validation:</b> We send a request to an API that checks if an email is valid or not, only used when sign in.
+</p>
 <h3>HTTPS NOT SUPPORTED</h3>
 <hr/>
 <h2>Walkthrough</h2>
