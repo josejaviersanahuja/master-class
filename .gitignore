@@ -3,3 +3,6 @@
 /api-monitoring-app/.logs/
 /api-monitoring-app/.logs
 /api-monitoring-app/.env
+/api-monitoring-app/https/key.pem
+/api-monitoring-app/https/cert.pem
+/api-monitoring-app/https
