@@ -7,7 +7,6 @@
 const server = require('./server/server')
 const {dotEnvReader} = require('./lib/dotEnvReader')
 const loggingWatcher = require('./lib/loggingWatcher')
-const helpers = require('./lib/helpers')
 
  // app container
 const app = {}

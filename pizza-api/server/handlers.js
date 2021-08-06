@@ -12,6 +12,8 @@ const contractChecker = require('../lib/objectContractsChecker')
 const menuPizzas = require('../.data/menu/menuPizzas.json')
 const menuDrinks = require('../.data/menu/menuDrinks.json');
 const util = require('util')
+const querystring = require('querystring')
+const https = require('https')
 const debug = util.debuglog('handlers')
 
 //defining CONST handlers and router
@@ -342,12 +344,12 @@ handler._logging.post = function (data, callback) {
   }
 };
 // tokens-get
-// Required data: token
+// Required data: token (in headers)
 // Optional data: none
 // @TODO check if this method will be open for everybody or we need to create a security requirement
 handler._logging.get = function (data, callback) {
   //Check that the id is valid
-  const token = contractChecker.token(data.queryStringObject.get("token"))
+  const token = contractChecker.token(data.headers.token)
 
   if (token) {
     // Look up the token
@@ -512,7 +514,7 @@ handler.menu = function (data, callback) {
   if (acceptableMethods.includes(data.method)) {
     // check entry data
     const email = contractChecker.notEmptyString(data.queryStringObject.get('email'))
-    const token = contractChecker.token(data.queryStringObject.get('token'))
+    const token = contractChecker.token(data.headers.token)
     if (email && token) {
       //Check if the user is logged in
       handler._logging.verifyToken(token, email, function(isLoggedIn){
@@ -820,7 +822,7 @@ handler._shoppingcartItem.put = function(data, callback){
 }
 
 // end point for payment
-//requires in body: email, shoppingCart
+//requires in body: email
 //requires in headers: token
 handler.checkout = function (data, callback) {
   //figure out which methods to trigger
@@ -829,37 +831,147 @@ handler.checkout = function (data, callback) {
     //check data entries
     const email = contractChecker.notEmptyString(data.payload.email)
     const token = contractChecker.token(data.headers.token)
-    const shoppingCart = contractChecker.shoppingCart(data.payload.shoppingCart)
-
+    
     //after the first check
-    if (email && token && shoppingCart) {
+    if (email && token) {
       //Verify that the user is logged in correctly
       handler._logging.verifyToken(token, email, function(isValid){
         if (isValid) {
-          //@TODO we need to add a _data read user y coger su shoppingcart en vez de pasar por parametros
-          //Lets create a new orderID
-          _data.list('orderID',function(err, orderList){
-            if (!err) {
-              let orderId =''
-              // if its the first order, the id will be 0001
-              if (orderList.length===0) {
-                orderId = '0001'
+          //now we need to get the userData and its shoppingcart
+          _data.read('users', email, function(err, userData){
+            if (!err && userData) {
+              // we get and check the contract of the shoppingcart
+              const shoppingCart = contractChecker.shoppingCart(userData.shoppingCart)
+              if (shoppingCart) {
+                // now we can proceed. Lets create a new orderID
+                _data.list('orderID',function(err, orderList){
+                  if (!err) {
+                    let orderId =''
+                    // if its the first order, the id will be 0001
+                    if (orderList.length===0) {
+                      orderId = '0001'
+                    } else {
+                      // if its not the first order the id will be the previous +1
+                      const lastOrderId = orderList[orderList.length-1]
+                      //method in helpers createOrderId returns the next orderId
+                      orderId = helpers.createOrderId(lastOrderId)
+                    }
+                    // now lets get the total price to pay (shoppingCart past the contractChecker so is an array of objects with keys price and are numbers)
+                    let amountToPay = 0
+                    shoppingCart.forEach(item => {
+                      // stripe only works with cents
+                      amountToPay+= (item.price*100)
+                    })
+                    //now with order ID and the amountToPay, and the shoppingCart we can request the Payment to stripe
+                    //helpers.stripePayment(amountToPay, orderId, shoppingCart, callback, _data.create, email, _data.update, _data.read)
+                    /*******************************************
+                     *          Stripe creating charge
+                     ********************************************/
+                      const payload ={
+                        amount:amountToPay,
+                        currency:'usd',
+                        source:'tok_visa', // dummie token created for tests. in real operatios check how to create and get a token for a real Credit card
+                        description:'Order for ' + orderId ,
+                        receipt_email:email
+                      }
+                      
+                      const stringPayload = querystring.stringify(payload)
+                      const test = JSON.stringify(payload)
+
+                      console.log(stringPayload,' TEST TEST ', test); //TODO erase
+                  
+                      const requestDetails = {
+                          'protocol': 'https:',
+                          'hostname': 'api.stripe.com',
+                          'method': 'POST',
+                          'path': `/v1/charges`,
+                          'auth': process.env.STRIPE_KEY,
+                          'headers':{
+                              'Content-Type':'application/x-www-form-urlencoded',
+                              'Content-Length': Buffer.byteLength(stringPayload)
+                          }
+                      }
+                      // Instantiate the request object
+                      const req = https.request(requestDetails ,function(res){
+                          //Grab the status of the sent request
+                          const status = res.statusCode
+                          let data = ''
+                          // Callback succesfully if the request went through
+                          if(status == 200 || status == 201 ){
+                              res.on('data', function(chunk){
+                                data+=chunk
+                              })
+                  
+                              res.on('end', function(){
+                                  //get the response
+                                const finalObjectResponse = JSON.parse(data)
+                                console.log('\x1b[32m%s\x1b[0m','Payment went through, status code: ', status);
+                                  // store the order payment
+                                  const orderObject = {
+                                      orderID:orderId,
+                                      shoppingCart: shoppingCart, 
+                                      statusCode:status, 
+                                      paymentStatus:finalObjectResponse
+                                  }
+                                _data.create('orderId', orderId, orderObject, function(err){
+                                    if (!err) {
+                                      console.log('\x1b[32m%s\x1b[0m','OrderId has been stored correctly in folder .data/orderId: ');
+                                      //lets get the reset the shoppingcart and update the users shoppingcart
+                                      userData.shoppingCart = []
+                                      _data.update('users', email, userData, function(err){
+                                        if (!err) {
+                                          //Now we should send an email to the client @TODO
+                                          const mailMessage = `
+Hello ${userData.name}. Your order number is #${orderId}
+
+You have purchased: 
+${shoppingCart.map(e=> `${shoppingCart.indexOf(e)}) ${e.id} pizza/drink. ${e.size} size ................. ${e.price}$ \n`)}
+
+Total amount paid: ${amountToPay}
+
+Thank you for trusting PIZZA-API. Enjoy the meal.`
+                                          helpers.sendMailgunEmail(email,mailMessage)
+                                          callback(status, {Message:'New order succesfully created number: '+orderId})
+                                        } else {
+                                          callback(status, {Message:'Payment ok, order created ok, but there was a problem empting the shoppingcart of the user'})
+                                        }
+                                      })
+                                    } else {
+                                      callback(status, {Message: 'Payment went through but couldn´t create the orderId.'})
+                                    }
+                                })
+                              })
+                            }else{
+                              console.log('Status code returned was: '+status, res.statusMessage)
+                              callback(status, {"message":"Something went wrong with the payment"})
+                          }
+                        })
+                  
+                        // Bind to the error event
+                        req.on('error', function(e){
+                          console.error(e);
+                          callback(403, {ErrorOnRequest:e})
+                        })
+                  
+                        //adding payload
+                        req.write(stringPayload)
+                  
+                        //End the request
+                        req.end()
+
+                    /*****************************************
+                     *            Finish with the charge
+                     ******************************************/
+                  } else {
+                    callback(500,{Error:'Internal error creating a new order ID'})
+                  }
+                })
+
               } else {
-                // if its not the first order the id will be the previous +1
-                const lastOrderId = orderList[orderList.length-1]
-                //method in helpers createOrderId returns the next orderId
-                orderId = helpers.createOrderId(lastOrderId)
+                callback(400,{Error:'Bad request as shoppingCart is empty or has been corrupted'})
               }
-              // now lets get the total price to pay (shoppingCart past the contractChecker so is an array of objects with keys price and are numbers)
-              let amountToPay = 0
-              shoppingCart.forEach(item => {
-                // stripe only works with cents
-                amountToPay+= (item.price*100)
-              })
-              //now with order ID and the amountToPay, we can request the Payment to stripe
-              helpers.stripePayment(amountToPay, orderId, shoppingCart, callback, _data.create, email, _data.update, _data.read)
             } else {
-              callback(500,{Error:'Internal error creating a new order ID'})
+              callback(500,{Error: 'couldn´t read users shoppingCart due to internal error'})
             }
           })
         } else {

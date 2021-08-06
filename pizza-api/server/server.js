@@ -26,7 +26,7 @@ const server = {}
   
 // The HTTPS
   const httpsServerOptions = {
-  /*   'key': fs.readFileSync(path.join(__dirname, '../https/key.pem')),
+/*     'key': fs.readFileSync(path.join(__dirname, '../https/key.pem')),
     'cert': fs.readFileSync(path.join(__dirname, '../https/cert.pem')) */
   }
 
@@ -69,7 +69,7 @@ const server = {}
     'headers' : headers,
     'payload' : helpers.parseJsonToObject(buffer)
   }
-       
+
   //we choose a handler and we use the route to do it
  const chosenHandler = server.router[trimmedPath] || server.router.notFound
       

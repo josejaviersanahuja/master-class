@@ -11,6 +11,7 @@ enviroments.staging = {
   'httpsPort': 3001,
   'envName': "staging", // could be development
   'hashingSecret': 'thisIsASecret',
+  'mailgunDomain':'sandboxe4ae4bd114c9493386c8012323d7ca43.mailgun.org'
 };
 
 enviroments.production = {
@@ -18,6 +19,7 @@ enviroments.production = {
   'httpsPort': 5001,
   'envName': "production",
   'hashingSecret': 'thisIsASecret',
+  'mailgunDomain':'sandboxe4ae4bd114c9493386c8012323d7ca43.mailgun.org'
 };
 
 // Determine which enviroment export.

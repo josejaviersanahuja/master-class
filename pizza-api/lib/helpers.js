@@ -6,7 +6,6 @@ const crypto = require('crypto')
 const config = require('../config')
 const https = require('https')
 const querystring = require('querystring')
-const _data = require('./data')
 
 //container for all helpers
 const helpers = {}
@@ -251,6 +250,61 @@ helpers.stripePayment = function(amount, orderID,shoppingCart, callback, dataCre
     req.on('error', function(e){
         console.error(e);
         callback(403, {ErrorOnRequest:e})
+    })
+
+    //adding payload
+    req.write(stringPayload)
+
+    //End the request
+    req.end()
+}
+
+//Send email mailgun
+helpers.sendMailgunEmail = function(email, msg){
+    const payload ={
+        from:`Pizza-Api <mailgun@${config.mailgunDomain}>`,
+        to:email,
+        subject:'A new order to Pizza-API has been created',
+        text:msg
+    }
+    
+    const stringPayload = querystring.stringify(payload)
+
+    const requestDetails = {
+        'protocol': 'https:',
+        'hostname': 'api.mailgun.net',
+        'method': 'POST',
+        'path': `/v3/${config.mailgunDomain}/messages`,
+        'auth': `api:${process.env.MAILGUN_KEY}`,
+        'port':443,
+        'headers':{
+            'Content-Type':'application/x-www-form-urlencoded',
+            'Content-Length': Buffer.byteLength(stringPayload)
+        }
+    }
+    // Instantiate the request object
+    const req = https.request(requestDetails ,function(res){
+        //Grab the status of the sent request
+        const status = res.statusCode
+        let data = ''
+        res.on('data', function(chunk){
+            data+=chunk
+          })
+        res.on('end', function(){
+        //get the response
+            const finalObjectResponse = data.toString()
+            if (status === 200) {
+                console.log('\x1b[32m%s\x1b[0m','Email sent to: ',email ,'StatusCode: ', status);    
+            } else {
+                console.log('\x1b[31m%s\x1b[0m','Couldn´t send the email to: ',email ,'StatusCode: ', status, finalObjectResponse); 
+            }
+            
+        })
+    })
+
+    // Bind to the error event
+    req.on('error', function(e){
+        console.error(e);
     })
 
     //adding payload
