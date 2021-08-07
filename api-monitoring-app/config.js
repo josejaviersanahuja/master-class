@@ -1,7 +1,7 @@
 /**
  * Creating an export configuration variables.
  */
- const {privateKeys} = require('./lib/dotEnvReader')
+
 // Container for all the enviroments
 const enviroments = {};
 
@@ -15,8 +15,14 @@ enviroments.staging = {
   'twilio': {
     'fromPhone': '+17149092365',
     'accountSid': 'AC6e529c5151c30f0271b0283a53607a66',
-    'authToken': privateKeys.AUTH_TOKEN
-  }
+    'authToken': process.env.AUTH_TOKEN
+  },
+  'templateGlobals':{
+      'appName':'UptimeChecker',
+      'companyName':'zitrojj.dev',
+      'yearCreated':'2021',
+      'baseUrl':`http://localhost:3002/`
+    }
 };
 
 enviroments.production = {
@@ -28,8 +34,14 @@ enviroments.production = {
   'twilio': {
     'fromPhone': '+17149092365',
     'accountSid': 'AC6e529c5151c30f0271b0283a53607a66',
-    'authToken': privateKeys.AUTH_TOKEN
-  }
+    'authToken': process.env.AUTH_TOKEN
+  },
+  'templateGlobals':{
+      'appName':'UptimeChecker',
+      'companyName':'zitrojj.dev',
+      'yearCreated':'2021',
+      'baseUrl': `http://localhost:5000`
+    }
 };
 
 // Determine which enviroment export.

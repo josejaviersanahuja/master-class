@@ -1,7 +1,4 @@
 const fs = require('fs')
-const app = require('..')
-const server = require('../server/server')
-const workers = require('./workers')
 
 /**************************************************
  *              DOTENVREADER
@@ -43,10 +40,12 @@ lib.dotEnvReader = function(callback){
                     // persist the key value
                     lib.privateKeys[varName]=varValue
                 })
+                
                 process.env = {
                   ...process.env,
                   ...lib.privateKeys
                 }
+                //console.log('DEBBUG: ', process.env.AUTH_TOKEN);
                 callback()
             } else {
               console.log('no se leyo bien el .env. PUEDE que la APP no funcione bien');

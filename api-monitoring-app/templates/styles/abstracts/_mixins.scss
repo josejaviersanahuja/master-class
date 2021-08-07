@@ -1,0 +1,45 @@
+@mixin cleanBotonStyle {
+    isolation: isolate;
+    position:relative;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+/* @mixin fontWeightBold {
+    font-weight: 700;
+} */
+
+/* @mixin linkButtonHover {
+    box-shadow: 2px 2px 0 0 $secondColor;
+} */
+
+/* @mixin linkDefaultStyle {
+        text-decoration: none;
+        color: $secondColor;
+        border-radius: 5px;
+        padding: 0.25em;
+        border: 1px solid $thirdColor;
+        @include smoothTransition;
+        &:hover {
+            @include linkButtonHover;
+        }
+} */
+
+@mixin smoothTransition {
+    transition: all 0.5s ease-in-out;
+}
+
+/* 
+    MIXINS PARA RESPONSIVENESS
+*/
+@mixin media-m {
+    @media screen and (min-width:768px) {
+     @content;   
+    }
+}
