@@ -868,7 +868,8 @@ handler.checkout = function (data, callback) {
                       amountToPay+= (item.price*100)
                     })
                     //now with order ID and the amountToPay, and the shoppingCart we can request the Payment to stripe
-                    //helpers.stripePayment(amountToPay, orderId, shoppingCart, callback, _data.create, email, _data.update, _data.read)
+                    // const amountToPay = 100
+                    //const orderId='0001'
                     /*******************************************
                      *          Stripe creating charge
                      ********************************************/
@@ -994,29 +995,3 @@ Thank you for trusting PIZZA-API. Enjoy the meal.`
 //Export module
 module.exports = handler;
 
-/**
- * //create the order id
-            //@TODO create order watcher for the kitchen
-_data.list('orderID',function(err, orderList){
-  if (!err) {
-    // if its the first order, the id will be 0001
-    let orderId =''
-    if (orderList.length===0) {
-      orderId = '0001'
-    } else {
-      // if its not the first order the id will be the previous +1
-      const lastOrderId = orderList[orderList.length-1]
-      orderId = helpers.createOrderId(lastOrderId)  
-    }
-    _data.create('orderID', orderId, buyableObject, function(err){
-      if (!err) {
-        //we continue with the user
-      } else {
-
-      }
-    })
-  } else {
-
-  }
-})
- */

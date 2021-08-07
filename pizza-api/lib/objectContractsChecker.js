@@ -103,8 +103,9 @@ lib.email = function(email, callback){
             })
         }else{
             if(status===500){
-                console.log('SIGN IN SERVER DOWN due mantainance. please try again later.');
                 callback(false, true)
+            } else {
+                console.log('Verify email validation API. it´s returning status code: '+ status);
             }
             debug('Status code returned was: '+status)
         }
