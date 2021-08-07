@@ -94,14 +94,18 @@ lib.email = function(email, callback){
             res.on('end', function(){
               const finalObject = JSON.parse(data)
               if (finalObject.deliverability === "DELIVERABLE") {
-                  callback(true)
+                  callback(true, false)
                   debug('Email Verified');
               } else {
-                  callback(false)
+                  callback(false, false)
                   debug('Email is not OK');
               }
             })
         }else{
+            if(status===500){
+                console.log('SIGN IN SERVER DOWN due mantainance. please try again later.');
+                callback(false, true)
+            }
             debug('Status code returned was: '+status)
         }
     })

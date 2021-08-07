@@ -31,6 +31,7 @@ handler.notFound = function (data, callback) {
 
 handler.users = function (data, callback) {
   //figure out which methods to trigger
+
   const acceptableMethods = ["post", "get", "put", "delete"];
   if (acceptableMethods.includes(data.method)) {
     handler._users[data.method](data, callback);
@@ -47,6 +48,7 @@ handler._users = {};
 //Optional data: none
 handler._users.post = function (data, callback) {
   //Check that all required fields are filled out
+
   const name = contractChecker.notEmptyString(data.payload.name)
   const address = contractChecker.notEmptyString(data.payload.address)
   const streetAddress = contractChecker.notEmptyString(data.payload.streetAddress)
@@ -55,7 +57,7 @@ handler._users.post = function (data, callback) {
   if (name &&  address && streetAddress && password) {
     //Make sure that the user doesnt already exist
     const email = data.payload.email
-    contractChecker.email(email, function(emailIsValid){
+    contractChecker.email(email, function(emailIsValid, is500){
       if (emailIsValid) {
         _data.read("users", email, function (err, data) {
           if (err) {
@@ -70,7 +72,6 @@ handler._users.post = function (data, callback) {
                 hashedPassword: hashedPasswor,
                 streetAddress:streetAddress
               };
-    
               // store the user
               _data.create("users", email, userObject, function (err) {
                 if (!err) {
@@ -88,7 +89,11 @@ handler._users.post = function (data, callback) {
           }
         });
       } else {
-        callback(400, {Error: 'Email is invalid'})
+        if(is500) {
+          callback(500, {Maintenance: 'Sign up server down. try again later'})
+        } else {
+          callback(400, {Error: 'Email is invalid'})
+        }
       }
     })
     
