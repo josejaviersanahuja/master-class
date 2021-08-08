@@ -97,7 +97,7 @@ handler._users.post = function (data, callback) {
       }
     });
   } else {
-    callback(400, { Error: "Missing required fields" });
+    callback(400, { Error: "Missing required fields, or one or some of them don´t fit the contract. Probably the Phone number" });
   }
 };
 //users-get

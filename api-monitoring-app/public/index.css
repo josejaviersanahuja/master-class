@@ -16,23 +16,6 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
 }
 
-/* @mixin fontWeightBold {
-    font-weight: 700;
-} */
-/* @mixin linkButtonHover {
-    box-shadow: 2px 2px 0 0 $secondColor;
-} */
-/* @mixin linkDefaultStyle {
-        text-decoration: none;
-        color: $secondColor;
-        border-radius: 5px;
-        padding: 0.25em;
-        border: 1px solid $thirdColor;
-        @include smoothTransition;
-        &:hover {
-            @include linkButtonHover;
-        }
-} */
 /* 
     MIXINS PARA RESPONSIVENESS
 */
@@ -41,6 +24,139 @@ code {
   height: 100vh;
   overflow: hidden;
   position: relative;
+}
+
+.title {
+  margin-top: 1rem;
+}
+
+.subtitle {
+  margin-bottom: 1rem;
+}
+
+.blurb {
+  background-color: #e6e6e6;
+  max-width: 500px;
+  border-radius: 10px;
+  font-weight: 700;
+  margin: 1rem;
+  border: 1px solid #70C0FF;
+}
+
+.ctaWrapper {
+  width: 90vw;
+  max-width: 500px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  margin: 1rem;
+}
+
+.cta {
+  border-radius: 10px;
+  padding: 0.5em;
+  font-size: 1.2em;
+  font-weight: 700;
+  text-decoration: none;
+  color: #181818;
+}
+
+.green {
+  background-color: #6b8e23;
+  transition: all 0.5s ease-in-out;
+}
+.green:hover {
+  box-shadow: 2px 2px 0 0 #181818;
+  color: white;
+  cursor: pointer;
+}
+.green:focus {
+  outline: none;
+  box-shadow: 2px 2px 0 0 #181818;
+  color: white;
+  cursor: pointer;
+}
+
+.blue {
+  background-color: #70C0FF;
+  transition: all 0.5s ease-in-out;
+}
+.blue:hover {
+  box-shadow: 2px 2px 0 0 #181818;
+  color: white;
+  cursor: pointer;
+}
+.blue:focus {
+  outline: none;
+  box-shadow: 2px 2px 0 0 #181818;
+  color: white;
+  cursor: pointer;
+}
+
+.signup {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.form__wrapper {
+  width: 100vw;
+  max-width: 500px;
+}
+
+.form__fieldset {
+  width: 100vw;
+  max-width: 500px;
+  background-color: #e6e6e6;
+}
+.form__fieldset legend {
+  font-weight: 700;
+  background-color: #e6e6e6;
+  border: 1px solid #181818;
+  border-radius: 5px;
+}
+.form__inputWrapper {
+  margin: 0.5rem 0;
+}
+.form__inputLabel {
+  font-weight: 700;
+}
+
+#form__fromError {
+  background-color: #6b8e23;
+  color: white;
+  font-weight: 700;
+  border-radius: 10px;
+}
+
+#form__button[disabled] {
+  opacity: 0.5;
+}
+
+#form__validPassword {
+  position: relative;
+  left: 12px;
+}
+
+input[name=confirmPassword] {
+  position: relative;
+  left: 12px;
+}
+
+input[name=phone] {
+  position: relative;
+  left: 5px;
+}
+
+#form__plus {
+  position: relative;
+  left: 5px;
+}
+
+#form__validPhone {
+  position: relative;
+  left: 5px;
 }
 
 footer {
@@ -187,7 +303,7 @@ header li {
 }
 main {
   width: 100vw;
-  min-height: 90%;
+  height: 100vh;
   text-align: center;
   max-width: 1200px;
   border: 1px solid #181818;
@@ -197,6 +313,9 @@ main {
   box-shadow: 1px 1px 2px 3px black;
   background-color: white;
   color: #181818;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /*# sourceMappingURL=index.css.map */

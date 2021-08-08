@@ -25,5 +25,15 @@ lib.object = function(data){
         return {}
     }
 }
+
+//CHECK A VALID METHOD, string and one of post, get, put, delete
+lib.mustBEValidMethod = function(method){
+    const valid = ['POST', 'GET', 'PUT', 'DELETE']
+    if (typeof method == 'string' && valid.includes(method.toUpperCase())) {
+        return method
+    } else {
+        return 'GET'
+    }
+}
 // exporting the module object
 module.exports = lib

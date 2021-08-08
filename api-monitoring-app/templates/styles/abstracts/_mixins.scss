@@ -1,3 +1,4 @@
+@use './colors' as *;
 @mixin cleanBotonStyle {
     isolation: isolate;
     position:relative;
@@ -11,25 +12,29 @@
     cursor: pointer;
 }
 
-/* @mixin fontWeightBold {
-    font-weight: 700;
-} */
+@mixin mainBody{
+    width:100vw;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+} 
 
-/* @mixin linkButtonHover {
-    box-shadow: 2px 2px 0 0 $secondColor;
-} */
+@mixin linkButtonHover {
+    box-shadow: 2px 2px 0 0 $primeColor;
+    color: $secondColor;
+    cursor: pointer;
+}
 
-/* @mixin linkDefaultStyle {
-        text-decoration: none;
-        color: $secondColor;
-        border-radius: 5px;
-        padding: 0.25em;
-        border: 1px solid $thirdColor;
-        @include smoothTransition;
-        &:hover {
-            @include linkButtonHover;
-        }
-} */
+@mixin linkColorDefaultStyle {
+    @include smoothTransition;
+    &:hover {
+        @include linkButtonHover;
+    }
+    &:focus{
+        outline: none;
+        @include linkButtonHover;
+    }
+}
 
 @mixin smoothTransition {
     transition: all 0.5s ease-in-out;

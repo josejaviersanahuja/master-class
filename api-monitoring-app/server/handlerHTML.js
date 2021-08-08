@@ -20,9 +20,8 @@ handler.index = function (data, callback) {
 	if (data.method === "get") {
 		//Prepare data for interpolation
 		const templateIndexData = {
-			'head.title':'This is the title',
-			'head.description':'This is the description',
-			'body.title':'Hello template world',
+			'head.title':'Uptime Monitoring APP',
+			'head.description':'We offer free uptime monitoring for HTTP/HTTPS sites of all kinds. When your site goes down, this app is prepared to send a text message to the user',
 			'body.class':'index'
 		}
 
@@ -39,6 +38,29 @@ handler.index = function (data, callback) {
 	}
   
 };
+
+// account/create
+handler.accountCreate = function(data, callback){
+	if (data.method === "get") {
+		//Prepare data for interpolation
+		const templateSignUpData = {
+			'head.title':'Sign UP Uptime Monitoring',
+			'head.description':'Sign up is easy and only take a few seconds',
+			'body.class':'signup'
+		}
+
+		//Read in  a template as a string
+		helpers.getTemplate('signup', templateSignUpData ,function(err, str){
+			if (!err && str) {
+				callback(200, str, CONTENT_TYPE)
+			} else {
+				callback(500, 'Something is wrong with the template', CONTENT_TYPE)	
+			}
+		})
+	} else {
+		callback(405,undefined,CONTENT_TYPE)
+	}
+}
 
 //Lets get the favicon
 handler.favicon = function (data, callback) {

@@ -1,6 +1,51 @@
+@use '../abstracts/' as *;
+
 .index {
 width:100vw;
 height: 100vh;
 overflow: hidden;
 position: relative;
+}
+
+
+.title{
+    margin-top: 1rem;   
+}
+
+.subtitle{
+    margin-bottom: 1rem;
+}
+
+.blurb {
+    background-color: darken($secondColor,10%);
+    max-width:500px;
+    border-radius: 10px;
+    font-weight: 700;
+    margin: 1rem;
+    border:1px solid $fourthColor;
+}
+.ctaWrapper{
+    width: 90vw;
+    max-width: 500px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    margin:1rem;
+}
+.cta {
+    border-radius: 10px;
+    padding:0.5em;
+    font-size: 1.2em;
+    font-weight: 700;
+    text-decoration: none;
+    color: $primeColor;
+}
+
+.green {
+    background-color: $thirdColor;
+    @include linkColorDefaultStyle;
+}
+.blue {
+    background-color: $fourthColor;
+    @include linkColorDefaultStyle;
 }

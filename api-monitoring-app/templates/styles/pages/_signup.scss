@@ -1,0 +1,61 @@
+@use '../abstracts/' as *;
+
+.signup {
+    @include mainBody;
+}
+
+.form__wrapper{
+    width: 100vw;
+    max-width: 500px;;
+}
+
+.form{
+    &__fieldset{
+        width: 100vw;
+        max-width: 500px;
+        background-color: darken($secondColor, 10%);
+        & legend{
+            font-weight: 700;
+            background-color: darken($secondColor, 10%);
+            border: 1px solid $primeColor;
+            border-radius: 5px;
+        }
+    }
+    &__inputWrapper{
+        margin: 0.5rem 0;
+    }
+    &__inputLabel {
+        font-weight: 700;
+    }
+}
+
+#form__fromError {
+    background-color: $thirdColor;
+    color: $secondColor;
+    font-weight: 700;
+    border-radius: 10px;
+}
+
+#form__button[disabled] {
+    opacity:0.5;
+}
+#form__validPassword{
+    position: relative;
+    left:12px;
+} 
+input[name="confirmPassword"] {
+    position: relative;
+    left:12px;
+}
+input[name="phone"] {
+    position: relative;
+    left:5px;
+}
+#form__plus {
+    position: relative;
+    left: 5px;
+}
+#form__validPhone {
+    position: relative;
+    left:5px;
+}
