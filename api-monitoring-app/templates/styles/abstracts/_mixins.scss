@@ -13,7 +13,7 @@
 }
 
 @mixin mainBody{
-    width:100vw;
+    
     height: 100vh;
     overflow: hidden;
     position: relative;
@@ -45,6 +45,12 @@
 */
 @mixin media-m {
     @media screen and (min-width:768px) {
+     @content;   
+    }
+}
+
+@mixin media-l {
+    @media screen and (min-width:1200px) {
      @content;   
     }
 }

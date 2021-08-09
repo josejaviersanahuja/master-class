@@ -123,7 +123,7 @@ const server = {}
       res.writeHead(statusCode)
       res.end(payloadString)
       if (statusCode === 200) {
-        console.log('\x1b[32m%s\x1b[0m','returning response: ', statusCode, payloadString);  
+        console.log('\x1b[32m%s\x1b[0m','returning response: ', statusCode);  
       } else {
         console.log('\x1b[31m%s\x1b[0m','returning response: ', statusCode, payloadString);
       }
@@ -139,17 +139,17 @@ const server = {}
 server.router = {
     ping: handlerAPI.ping,
     notFound: handlerAPI.notFound,
-    '':handlerHTML.index, //HTML
-    'account/create':handlerHTML.accountCreate, //HTML
-    'account/edit':handlerHTML.accountEdit, //HTML
-    'account/deleted':handlerHTML.accountDeleted, //HTML
-    'session/create':handlerHTML.sessionCreate, //HTML 
-    'session/deleted':handlerHTML.sessionDeleted, //HTML
-    'checks/all':handlerHTML.checksList, //HTML protected by sign in
-    'checks/create':handlerHTML.checksCreate, //HTML protected by sign in
-    'checks/edit':handlerHTML.checksEdit, //HTML protected by sign in
-    'favicon.ico': handlerHTML.favicon, // FAVICON
-    'public': handlerHTML.public, // FILES CSS y JS
+    '':handlerHTML.index, //HTML ok
+    'account/create':handlerHTML.accountCreate, //HTML ok
+    'account/edit':handlerHTML.accountEdit, //HTML ok
+    'account/deleted':handlerHTML.accountDeleted, //HTML TODO
+    'session/create':handlerHTML.sessionCreate, //HTML ok
+    'session/deleted':handlerHTML.sessionDeleted, //HTML ok
+    'checks/all':handlerHTML.checksList, //HTML protected by sign in ok
+    'checks/create':handlerHTML.checksCreate, //HTML protected by sign in TODO
+    'checks/edit':handlerHTML.checksEdit, //HTML protected by sign in TODO
+    'favicon.ico': handlerHTML.favicon, // FAVICON ok
+    'public': handlerHTML.public, // FILES CSS y JS ok
     'api/users': handlerAPI.users,
     'api/tokens': handlerAPI.tokens,
     'api/checks': handlerAPI.checks,

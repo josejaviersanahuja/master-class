@@ -3,11 +3,11 @@ footer {
     position: fixed;
     bottom: 0;
     display: flex;
-    width: 100vw;
+    width:100%;
     background-color: rgba($color: $primeColor, $alpha: 0.9);
     color: $secondColor;
     z-index: 2;
 }
 .copyright {
-    margin: auto;
+    margin: 0 auto;
 }

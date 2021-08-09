@@ -103,5 +103,101 @@ handler.public = function(data, callback){
 		callback(405,'Only GET is allowed', CONTENT_TYPE)
 	}
 }
+
+// Log In
+handler.sessionCreate = function(data, callback){
+	//Reject everything but GET
+	if (data.method === "get") {
+		//Prepare data for interpolation
+		const templateLogInData = {
+			'head.title':'Log In to your account',
+			'head.description':'Please enter your phone number and your password for login',
+			'body.class':'login'
+		}
+
+		//Read in  a template as a string
+		helpers.getTemplate('login', templateLogInData ,function(err, str){
+			if (!err && str) {
+				callback(200, str, CONTENT_TYPE)
+			} else {
+				callback(500, 'Something is wrong with the template', CONTENT_TYPE)	
+			}
+		})
+	} else {
+		callback(405,undefined,CONTENT_TYPE)
+	}
+}
+
+//Log out request
+handler.sessionDeleted = function(data, callback){
+	//Reject everything but GET
+	if (data.method === "get") {
+		//Prepare data for interpolation
+		const templateLogOutData = {
+			'head.title':'Logged out',
+			'head.description':'You have logged out of your account',
+			'body.class':'logout'
+		}
+
+		//Read in  a template as a string
+		helpers.getTemplate('logout', templateLogOutData ,function(err, str){
+			if (!err && str) {
+				callback(200, str, CONTENT_TYPE)
+			} else {
+				callback(500, 'Something is wrong with the template', CONTENT_TYPE)	
+			}
+		})
+	} else {
+		callback(405,undefined,CONTENT_TYPE)
+	}
+}
+
+//Dashboard of the logged in user
+handler.checksList = function(data, callback){
+	//Reject everything but GET
+	if (data.method === "get") {
+		//Prepare data for interpolation
+		const templateDashboardData = {
+			'head.title':'Dashboard',
+			'head.description':'Wellcome to your dashboard',
+			'body.class':'dashboard'
+		}
+
+		//Read in  a template as a string
+		helpers.getTemplate('dashboard', templateDashboardData ,function(err, str){
+			if (!err && str) {
+				callback(200, str, CONTENT_TYPE)
+			} else {
+				callback(500, 'Something is wrong with the template', CONTENT_TYPE)	
+			}
+		})
+	} else {
+		callback(405,undefined,CONTENT_TYPE)
+	}
+}
+
+//SETTINGS
+handler.accountEdit = function(data, callback){
+	//Reject everything but GET
+	if (data.method === "get") {
+		//Prepare data for interpolation
+		const templateSettingsData = {
+			'head.title':'Account Settings',
+			'body.class':'settings',
+			'subtitle': 'Edit your accountsettings'
+		}
+
+		//Read in  a template as a string
+		helpers.getTemplate('settings', templateSettingsData ,function(err, str){
+			if (!err && str) {
+				callback(200, str, CONTENT_TYPE)
+			} else {
+				callback(500, 'Something is wrong with the template', CONTENT_TYPE)	
+			}
+		})
+	} else {
+		callback(405,undefined,CONTENT_TYPE)
+	}
+}
 //Exporting the module
 module.exports = handler

@@ -1,7 +1,7 @@
 @use '../abstracts/' as *;
 
 .index {
-width:100vw;
+
 height: 100vh;
 overflow: hidden;
 position: relative;
@@ -21,16 +21,16 @@ position: relative;
     max-width:500px;
     border-radius: 10px;
     font-weight: 700;
-    margin: 1rem;
+    margin: 1rem ;
     border:1px solid $fourthColor;
 }
 .ctaWrapper{
-    width: 90vw;
+    
     max-width: 500px;
     display: flex;
     flex-direction: row;
     justify-content: space-around;
-    margin:1rem;
+    margin:1rem 0
 }
 .cta {
     border-radius: 10px;
