@@ -374,9 +374,6 @@ app.loadAccountEditPage = function(){
   } else {
     app.logUserOut();
   }
-
-
-
 };
 
 // Loop to renew token often
