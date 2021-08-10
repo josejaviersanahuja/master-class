@@ -159,7 +159,7 @@ handler.checksList = function(data, callback){
 		//Prepare data for interpolation
 		const templateDashboardData = {
 			'head.title':'Dashboard',
-			'head.description':'Wellcome to your dashboard',
+			'head.description':'You can have up to 5 CHECKS',
 			'body.class':'dashboard'
 		}
 

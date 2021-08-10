@@ -255,6 +255,38 @@ input[type=hidden] {
   width: min-content;
 }
 
+#checksListTable, tr, th, td {
+  color: #181818;
+  border-collapse: collapse;
+  border: 1px solid #181818;
+  margin: 0;
+  padding: 0.5rem;
+}
+
+#checksListTable .checkRow:nth-child(2n) {
+  background-color: white;
+}
+#checksListTable .checkRow:nth-child(2n+1) {
+  background-color: #e6e6e6;
+}
+#checksListTable td:nth-child(5n+4), #checksListTable td:nth-child(5n+1) {
+  font-weight: 700;
+}
+
+th {
+  background-color: #6b8e23;
+}
+
+#checksListTable {
+  width: 80%;
+  margin: 1rem 0 3rem 0;
+  border-radius: 10px;
+}
+
+#noChecksMessage, #createCheckCTA {
+  display: none;
+}
+
 .accountDeleted {
   height: 100vh;
   overflow-x: hidden;
