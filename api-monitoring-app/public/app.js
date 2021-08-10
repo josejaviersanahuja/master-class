@@ -165,21 +165,48 @@ app.bindForms = function () {
         const elements = this.elements;
         for (let i = 0; i < elements.length; i++) {
           const element = elements[i];
-          // todo input menos el boton
+          
+          // Determine class of element and set value accordingly
+          const classOfElement = typeof(element.classList.value) == 'string' && element.classList.value.length > 0 ? element.classList.value : '';
+          const valueOfElement = element.type == 'checkbox' && !classOfElement.includes('multiselect') ? element.checked : !classOfElement.includes('intval') ? element.value : parseInt(element.value);
+          const elementIsChecked = element.checked;
+          // Override the method of the form if the input's name is _method
+          const nameOfElement = element.name;
 
+          // todo input menos el boton, fieldset ni con nombre confirmePassword
           if (
             element.type !== "submit" &&
             element.type !== "fieldset" &&
             element.name !== "confirmPassword"
           ) {
-            const valueOfInput =
-              element.type == "checkbox" ? element.checked : element.value;
-            payload[element.name] = valueOfInput;
+              // FIRST LETS HANDLE CHECKBOXES
+              if (element.type == "checkbox") {
+                //IF the checkbox is for the creation CHECKS methods 200,201,300,301,302,400,403,405,406,500
+                if (nameOfElement === "successCodes") {
+                  //the post new check requires a field called method:[200,201 or whatever]
+                  payload[nameOfElement]= Array.isArray(payload[nameOfElement]) ? payload[nameOfElement]:[]
+                  //only pushing checkboxes selected
+                  if (elementIsChecked) {
+                    payload[nameOfElement].push(valueOfElement)
+                  }
+                } else {
+                //IF the checkbox is for tosAgreement (other that creations of checks)
+                  payload[element.name]=elementIsChecked // we are passing true or false
+                  /* HOW HANDLED TOSAGREEMENT BEFORE
+                  const valueOfInput =
+                  element.type == "checkbox" ? element.checked : element.value;
+                  payload[element.name] = valueOfInput; */ 
+                }
+              } else {
+                // FINISHED CHECKBOXES lets do the rest
+                // as normal pair name:value
+                payload[nameOfElement]= valueOfElement
+              }
           }
         }
-
         // If the method is DELETE, the payload should be a queryStringObject instead
         const queryStringObject = method == 'DELETE' ? payload : {};
+        console.log('DEBBUGG 208 finalRquest = path:',path,' -method: ', method,' -queryStringObject: ', queryStringObject, '-payload: ', payload);
         
         //Call the API
         app.client.request(
@@ -262,6 +289,11 @@ app.formResposeProcessor = function (formId, requestPayload, responsePayload) {
   if(formId == 'accountEdit3'){
     app.logUserOut(false);
     window.location = '/account/deleted';
+  }
+  
+  // If the user just created a new check successfully, redirect back to the dashboard
+  if(formId == 'checksCreate'){
+    window.location = '/checks/all';
   }
 };
 

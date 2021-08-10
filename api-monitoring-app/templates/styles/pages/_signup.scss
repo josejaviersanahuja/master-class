@@ -22,6 +22,7 @@
             background-color: darken($secondColor, 10%);
             border: 1px solid $primeColor;
             border-radius: 5px;
+            padding:0.3rem;
         }
     }
     &__inputWrapper{
@@ -29,6 +30,7 @@
     }
     &__inputLabel {
         font-weight: 700;
+        margin: 1rem 1rem 0 1rem;
     }
 }
 

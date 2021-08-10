@@ -23,9 +23,23 @@
     }
 } 
 
+@mixin linkButton {
+    border-radius: 10px;
+    padding:0.5em;
+    font-size: 1.2em;
+    font-weight: 700;
+    text-decoration: none;
+    color: $primeColor; 
+}
+
 @mixin linkButtonHover {
     box-shadow: 2px 2px 0 0 $primeColor;
     color: $secondColor;
+    cursor: pointer;
+}
+@mixin linkBorderButtonHover {
+    box-shadow: 2px 2px 0 0 $primeColor;
+    color: $thirdColor;
     cursor: pointer;
 }
 
@@ -37,6 +51,16 @@
     &:focus{
         outline: none;
         @include linkButtonHover;
+    }
+}
+@mixin linkBorderDefaultStyle {
+    @include smoothTransition;
+    &:hover {
+        @include linkBorderButtonHover;
+    }
+    &:focus{
+        outline: none;
+        @include linkBorderButtonHover;
     }
 }
 

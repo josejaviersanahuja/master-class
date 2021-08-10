@@ -11,6 +11,7 @@ body, html {
   background-color: #70C0FF;
   color: #181818;
   width: 100vw;
+  scroll-behavior: smooth;
 }
 
 code {
@@ -48,12 +49,14 @@ code {
   background-color: #e6e6e6;
   border: 1px solid #181818;
   border-radius: 5px;
+  padding: 0.3rem;
 }
 .form__inputWrapper {
   margin: 0.5rem 0;
 }
 .form__inputLabel {
   font-weight: 700;
+  margin: 1rem 1rem 0 1rem;
 }
 
 #form__fromError, .form__fromSucces, .form__fromError, .form__warning {
@@ -198,6 +201,22 @@ input[type=hidden] {
   cursor: pointer;
 }
 
+.border {
+  border: 1px solid #181818;
+  transition: all 0.5s ease-in-out;
+}
+.border:hover {
+  box-shadow: 2px 2px 0 0 #181818;
+  color: #6b8e23;
+  cursor: pointer;
+}
+.border:focus {
+  outline: none;
+  box-shadow: 2px 2px 0 0 #181818;
+  color: #6b8e23;
+  cursor: pointer;
+}
+
 .settings {
   height: 100vh;
   overflow-x: hidden;
@@ -246,6 +265,47 @@ input[type=hidden] {
   width: min-content;
 }
 
+.createCheck {
+  height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.createCheck::-webkit-scrollbar {
+  display: none;
+  width: min-content;
+}
+
+.backButton {
+  border-radius: 10px;
+  padding: 0.5em;
+  font-size: 1.2em;
+  font-weight: 700;
+  text-decoration: none;
+  color: #181818;
+  float: left;
+  margin-bottom: -2rem;
+}
+
+.checkboxGroup {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(30px, 1fr));
+  place-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+}
+.checkboxGroup .multiselect {
+  margin-right: auto;
+}
+.checkboxGroup .multiselect__span {
+  margin: 0 0.5rem;
+}
+
+/*
+#checksCreate
+
+
+.intval
+*/
 footer {
   position: fixed;
   bottom: 0;

@@ -223,5 +223,28 @@ handler.accountDeleted = function(data, callback){
 		callback(405,undefined,CONTENT_TYPE)
 	}
 }
+
+// Create a new CHECK
+handler.checksCreate = function(data, callback){
+	//Reject everything but GET
+	if (data.method === "get") {
+		//Prepare data for interpolation
+		const templateData = {
+			'head.title':'Create a Check',
+			'body.class':'createCheck',
+		}
+
+		//Read in  a template as a string
+		helpers.getTemplate('createCheck', templateData ,function(err, str){
+			if (!err && str) {
+				callback(200, str, CONTENT_TYPE)
+			} else {
+				callback(500, 'Something is wrong with the template', CONTENT_TYPE)	
+			}
+		})
+	} else {
+		callback(405,undefined,CONTENT_TYPE)
+	}
+}
 //Exporting the module
 module.exports = handler
