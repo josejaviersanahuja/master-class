@@ -5,16 +5,18 @@
 }
 
 .form__wrapper{
- 
+    margin: 1rem 0;
+    width: 80%;
     max-width: 500px;
-    margin: 1rem;
 }
 
 .form{
     &__fieldset{
-        
         max-width: 500px;
         background-color: darken($secondColor, 10%);
+        border-radius: 10px;
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
         & legend{
             font-weight: 700;
             background-color: darken($secondColor, 10%);
@@ -30,12 +32,18 @@
     }
 }
 
-#form__fromError, .form__fromSucces, .form__fromError {
+#form__fromError, .form__fromSucces, .form__fromError, .form__warning {
     background-color: $thirdColor;
     color: $secondColor;
     font-weight: 700;
     border-radius: 10px;
+    margin:1rem;
+    padding:0.5rem;
     display: none;
+}
+
+.form__warning {
+    display: block;
 }
 
 #form__button[disabled] {
@@ -64,3 +72,4 @@ input[type="hidden"] {
     position: relative;
     left:5px;
 }
+

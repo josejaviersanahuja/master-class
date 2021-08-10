@@ -15,8 +15,12 @@
 @mixin mainBody{
     
     height: 100vh;
-    overflow: hidden;
-    position: relative;
+    overflow-x: hidden;
+    overflow-y:auto;
+    &::-webkit-scrollbar{
+        display: none;
+        width: min-content;
+    }
 } 
 
 @mixin linkButtonHover {

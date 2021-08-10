@@ -142,7 +142,7 @@ server.router = {
     '':handlerHTML.index, //HTML ok
     'account/create':handlerHTML.accountCreate, //HTML ok
     'account/edit':handlerHTML.accountEdit, //HTML ok
-    'account/deleted':handlerHTML.accountDeleted, //HTML TODO
+    'account/deleted':handlerHTML.accountDeleted, //HTML ok
     'session/create':handlerHTML.sessionCreate, //HTML ok
     'session/deleted':handlerHTML.sessionDeleted, //HTML ok
     'checks/all':handlerHTML.checksList, //HTML protected by sign in ok

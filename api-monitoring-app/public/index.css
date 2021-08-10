@@ -20,10 +20,97 @@ code {
 /* 
     MIXINS PARA RESPONSIVENESS
 */
+.signup {
+  height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.signup::-webkit-scrollbar {
+  display: none;
+  width: min-content;
+}
+
+.form__wrapper {
+  margin: 1rem 0;
+  width: 80%;
+  max-width: 500px;
+}
+
+.form__fieldset {
+  max-width: 500px;
+  background-color: #e6e6e6;
+  border-radius: 10px;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+}
+.form__fieldset legend {
+  font-weight: 700;
+  background-color: #e6e6e6;
+  border: 1px solid #181818;
+  border-radius: 5px;
+}
+.form__inputWrapper {
+  margin: 0.5rem 0;
+}
+.form__inputLabel {
+  font-weight: 700;
+}
+
+#form__fromError, .form__fromSucces, .form__fromError, .form__warning {
+  background-color: #6b8e23;
+  color: white;
+  font-weight: 700;
+  border-radius: 10px;
+  margin: 1rem;
+  padding: 0.5rem;
+  display: none;
+}
+
+.form__warning {
+  display: block;
+}
+
+#form__button[disabled] {
+  opacity: 0.5;
+}
+
+#form__validPassword {
+  position: relative;
+  left: 12px;
+}
+
+input[name=confirmPassword] {
+  position: relative;
+  left: 12px;
+}
+
+input[name=phone] {
+  position: relative;
+  left: 5px;
+}
+
+input[type=hidden] {
+  width: 50%;
+}
+
+#form__plus {
+  position: relative;
+  left: 5px;
+}
+
+#form__validPhone {
+  position: relative;
+  left: 5px;
+}
+
 .index {
   height: 100vh;
-  overflow: hidden;
-  position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.index::-webkit-scrollbar {
+  display: none;
+  width: min-content;
 }
 
 .title {
@@ -31,7 +118,7 @@ code {
 }
 
 .subtitle {
-  margin-bottom: 1rem;
+  margin: 1rem 0;
 }
 
 .blurb {
@@ -41,6 +128,9 @@ code {
   font-weight: 700;
   margin: 1rem;
   border: 1px solid #70C0FF;
+}
+.blurb li {
+  list-style: none;
 }
 
 .ctaWrapper {
@@ -92,73 +182,30 @@ code {
   cursor: pointer;
 }
 
-.signup {
-  height: 100vh;
-  overflow: hidden;
-  position: relative;
+.red {
+  background-color: red;
+  transition: all 0.5s ease-in-out;
 }
-
-.form__wrapper {
-  max-width: 500px;
-  margin: 1rem;
-}
-
-.form__fieldset {
-  max-width: 500px;
-  background-color: #e6e6e6;
-}
-.form__fieldset legend {
-  font-weight: 700;
-  background-color: #e6e6e6;
-  border: 1px solid #181818;
-  border-radius: 5px;
-}
-.form__inputWrapper {
-  margin: 0.5rem 0;
-}
-.form__inputLabel {
-  font-weight: 700;
-}
-
-#form__fromError, .form__fromSucces, .form__fromError {
-  background-color: #6b8e23;
+.red:hover {
+  box-shadow: 2px 2px 0 0 #181818;
   color: white;
-  font-weight: 700;
-  border-radius: 10px;
+  cursor: pointer;
+}
+.red:focus {
+  outline: none;
+  box-shadow: 2px 2px 0 0 #181818;
+  color: white;
+  cursor: pointer;
+}
+
+.settings {
+  height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.settings::-webkit-scrollbar {
   display: none;
-}
-
-#form__button[disabled] {
-  opacity: 0.5;
-}
-
-#form__validPassword {
-  position: relative;
-  left: 12px;
-}
-
-input[name=confirmPassword] {
-  position: relative;
-  left: 12px;
-}
-
-input[name=phone] {
-  position: relative;
-  left: 5px;
-}
-
-input[type=hidden] {
-  width: 50%;
-}
-
-#form__plus {
-  position: relative;
-  left: 5px;
-}
-
-#form__validPhone {
-  position: relative;
-  left: 5px;
+  width: min-content;
 }
 
 #updatePasswordBtn[disabled] {
@@ -169,11 +216,41 @@ input[type=hidden] {
   opacity: 0.5;
 }
 
+.login {
+  height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.login::-webkit-scrollbar {
+  display: none;
+  width: min-content;
+}
+
+.dashboard {
+  height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.dashboard::-webkit-scrollbar {
+  display: none;
+  width: min-content;
+}
+
+.accountDeleted {
+  height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.accountDeleted::-webkit-scrollbar {
+  display: none;
+  width: min-content;
+}
+
 footer {
   position: fixed;
   bottom: 0;
   display: flex;
-  width: 100%;
+  width: 100vw;
   background-color: rgba(24, 24, 24, 0.9);
   color: white;
   z-index: 2;
@@ -336,9 +413,9 @@ main {
   border: 1px solid #181818;
   background-color: white;
   color: #181818;
-  /*     display: flex;
-      flex-direction: column;
-      align-items: center; */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 @media screen and (min-width: 1200px) {
@@ -348,6 +425,9 @@ main {
     transform: translateX(-50%);
     box-shadow: 1px 1px 2px 3px black;
   }
+}
+hr {
+  width: 100%;
 }
 
 /*# sourceMappingURL=index.css.map */

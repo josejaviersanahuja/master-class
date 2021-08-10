@@ -199,5 +199,29 @@ handler.accountEdit = function(data, callback){
 		callback(405,undefined,CONTENT_TYPE)
 	}
 }
+
+// ACCOUNT HAS BEEN DELETED
+handler.accountDeleted = function(data, callback){
+	//Reject everything but GET
+	if (data.method === "get") {
+		//Prepare data for interpolation
+		const templateData = {
+			'head.title':'Account Deleted',
+			'body.class':'accountDeleted',
+			'subtitle': 'Your account has been deleted'
+		}
+
+		//Read in  a template as a string
+		helpers.getTemplate('accountDeleted', templateData ,function(err, str){
+			if (!err && str) {
+				callback(200, str, CONTENT_TYPE)
+			} else {
+				callback(500, 'Something is wrong with the template', CONTENT_TYPE)	
+			}
+		})
+	} else {
+		callback(405,undefined,CONTENT_TYPE)
+	}
+}
 //Exporting the module
 module.exports = handler

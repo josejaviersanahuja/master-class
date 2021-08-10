@@ -1,7 +1,9 @@
 <h1 class="title">{head.title}</h1>
-<hr />
 <h2 class="subtitle">{subtitle}</h2>
 
+<div class="form__wrapper">
+  <hr />
+</div>
 <div class="form__wrapper">
   <form class="form" id="accountEdit1" action="/api/users" method="PUT">
     <fieldset class="form__fieldset">
@@ -44,9 +46,9 @@
       </div>
     </fieldset>
   </form>
+  <hr />
 </div>
 
-<hr />
 <h2>Change Your Password</h2>
 <div class="form__wrapper">
   <form class="form" id="accountEdit2" action="/api/users" method="PUT">
@@ -79,6 +81,22 @@
         <button type="submit" class="cta green" id="updatePasswordBtn" disabled >Save Password</button>
       </div>
     </fieldset>
+  </form>
+  <hr />
+</div>
+<h2>Delete Your Account</h2>
+<div class="form__wrapper">
+  <form class="form" id="accountEdit3" action="/api/users" method="DELETE">
+    <fieldset class="form__fieldset">
+      <legend>Password</legend>
+        <input type="hidden" name="_method" value="DELETE"/>
+        <div class="form__fromError"></div>
+        <div class="form__warning red">Warning: This action cannot be undone. Dont click this button on accident!</div>
+        <input class="hiddenPhoneNumberInput" type="hidden" name="phone" />
+        <div class="inputWrapper">
+      <button type="submit" class="cta red">Delete Account</button>
+    </div>
+  </fieldset>
   </form>
 </div>
 <!-- onkeyup="handleSignUpButton()" -->

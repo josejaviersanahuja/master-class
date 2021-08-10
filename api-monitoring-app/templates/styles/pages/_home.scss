@@ -1,10 +1,7 @@
 @use '../abstracts/' as *;
 
 .index {
-
-height: 100vh;
-overflow: hidden;
-position: relative;
+@include mainBody;
 }
 
 
@@ -13,7 +10,7 @@ position: relative;
 }
 
 .subtitle{
-    margin-bottom: 1rem;
+    margin: 1rem 0;
 }
 
 .blurb {
@@ -23,6 +20,9 @@ position: relative;
     font-weight: 700;
     margin: 1rem ;
     border:1px solid $fourthColor;
+    & li {
+        list-style: none;
+    }
 }
 .ctaWrapper{
     
@@ -47,5 +47,9 @@ position: relative;
 }
 .blue {
     background-color: $fourthColor;
+    @include linkColorDefaultStyle;
+}
+.red{
+    background-color: red;
     @include linkColorDefaultStyle;
 }

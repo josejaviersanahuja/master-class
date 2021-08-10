@@ -1,5 +1,8 @@
 @use '../abstracts/' as *;
 
+.settings {
+    @include mainBody;
+}
 #updatePasswordBtn[disabled] {
     opacity:0.5;
 }
