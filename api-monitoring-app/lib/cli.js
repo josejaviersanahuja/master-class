@@ -11,6 +11,7 @@ class _events extends events {}
 
 const contractChecker = require("./contractChecker");
 
+//codify the unique questions allowed
 const e = new _events();
 
 //INITIALIZING MODULE OBJ
@@ -77,7 +78,42 @@ cli.responders= {}
 
 //HELP && MAN
 cli.responders.help = function(){
-  console.log('you asked for help');
+  const commands = {
+    "help":"Alias of the man command",
+    "man":"Show this help page",
+    "exit":"Kill the CLI (and the rest of the APP including the server)",
+    "stats":"Get statistics on the onderlying operating system and resource utilization",
+    "list users":"All registered undeleted users in the system",
+    "more user info --{userId}":"Show details of specific user",
+    "list checks --up --down":"Show a list of all the active checks in the system, including their state. --up or --down are optional",
+    "more check info --{checkId}":"Show details of specified check",
+    "list logs": "Show a list of all the log files available to be read (compressed and uncompressed)",
+    "more log info --{fileName}":"Show details of specified log file"
+  };
+  
+  //CLI FORMAT Helpers
+  cli.horizontalLine()
+  cli.centered('CLI MANUAL')
+  cli.horizontalLine()
+  cli.verticalSpace(2)
+  
+  // Show each command, followed by its explination
+  Object.keys(commands).forEach(e=>{
+    let line= '\x1b[33m'+e+'\x1b[0m'
+    const value = commands[e]
+    const padding = 45- line.length
+    for (let i = 0; i < padding; i++) {
+      line += ' '
+    }
+    line +=  value
+    console.log(line);
+    cli.verticalSpace()
+  })
+  
+  cli.verticalSpace(1)
+
+  //End with another horizontal line
+  cli.horizontalLine()
 }
 
 //EXIT
@@ -122,22 +158,20 @@ cli.responders.moreLogInfo = function(str){
 //Input Processor
 cli.processInput = function (strLine) {
   strLine = contractChecker.notEmptyString(strLine.trim());
-  
+  const uniqueInputs = [
+    "man",
+    "help",
+    "exit",
+    "stats",
+    "list users",
+    "more user info",
+    "list checks",
+    "more check info",
+    "list logs",
+    "more log info",
+  ];
   //only continue if there was an input
   if (strLine) {
-    //codify the unique questions allowed
-    const uniqueInputs = [
-      "man",
-      "help",
-      "exit",
-      "stats",
-      "list users",
-      "more user info",
-      "list checks",
-      "more check info",
-      "list logs",
-      "more log info",
-    ];
 
     // Go through possible inputs, emmit an event when a match is found
     let match = false
@@ -153,14 +187,52 @@ cli.processInput = function (strLine) {
 
     //If no match was found
     if (!match) {
-        console.log('   I don´t recognize that command. Sorry, try again with some of this commands');
-        console.log('--------');
-        uniqueInputs.forEach(e=>{
-            console.log('"'+e+'"');
-        })
+        console.log('   I don´t recognize that command. Sorry, try again with "help"');
     }
   }
 };
+/*********************************
+ *        CLI FORMAT helper
+ * ****************************** */
+
+// draw a horizontal line of the console's width
+cli.horizontalLine= function(){
+  //GET available screen size
+  const width = process.stdout.columns
+
+  let line = ''
+  for (let i = 0; i < width; i++) {
+    line+='-'
+  }
+  console.log(line);
+}
+
+// centered will show a text CENTERED like a title
+cli.centered = function(title){
+  title = typeof title == 'string' && title.length > 0 ? title.trim() : ''
+  
+  // get the width
+  const width = process.stdout.columns
+
+  //calculate de left padding
+  const leftPadding = Math.floor((width - title.length)/2)
+  let line = ''
+  for (let i = 0; i < leftPadding; i++) {
+    line += ' ' 
+  }
+  line+=title
+  console.log(line);
+}
+
+// determine de number of colums you want to format
+cli.verticalSpace = function(lines=1){
+  lines = typeof lines == 'number' && lines > 0 ? lines : 1
+  for (let i = 0; i < lines; i++) {
+    console.log('');    
+  }
+}
+
+
 // initializing
 cli.init = function () {
   //Start the message
