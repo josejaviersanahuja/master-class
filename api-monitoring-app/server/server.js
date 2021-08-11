@@ -146,8 +146,8 @@ server.router = {
     'session/create':handlerHTML.sessionCreate, //HTML ok
     'session/deleted':handlerHTML.sessionDeleted, //HTML ok
     'checks/all':handlerHTML.checksList, //HTML protected by sign in ok
-    'checks/create':handlerHTML.checksCreate, //HTML protected by sign in TODO
-    'checks/edit':handlerHTML.checksEdit, //HTML protected by sign in TODO
+    'checks/create':handlerHTML.checksCreate, //HTML protected by sign in ok
+    'checks/edit':handlerHTML.checksEdit, //HTML protected by sign in ok
     'favicon.ico': handlerHTML.favicon, // FAVICON ok
     'public': handlerHTML.public, // FILES CSS y JS ok
     'api/users': handlerAPI.users,

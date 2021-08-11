@@ -246,5 +246,27 @@ handler.checksCreate = function(data, callback){
 		callback(405,undefined,CONTENT_TYPE)
 	}
 }
+// Edit CHECKS
+handler.checksEdit = function(data, callback){
+	//Reject everything but GET
+	if (data.method === "get") {
+		//Prepare data for interpolation
+		const templateData = {
+			'head.title':'Edit a Check',
+			'body.class':'checksEdit',
+		}
+
+		//Read in  a template as a string
+		helpers.getTemplate('checksEdit', templateData ,function(err, str){
+			if (!err && str) {
+				callback(200, str, CONTENT_TYPE)
+			} else {
+				callback(500, 'Something is wrong with the template', CONTENT_TYPE)	
+			}
+		})
+	} else {
+		callback(405,undefined,CONTENT_TYPE)
+	}
+}
 //Exporting the module
 module.exports = handler

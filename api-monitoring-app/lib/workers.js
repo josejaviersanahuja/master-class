@@ -301,7 +301,41 @@ workers.alertUser = function(newCheckData){
         }
     }) */
     //@TODO the real app would be with twilioSMS for now just check the log
-    console.log('\x1b[41m%s\x1b[0m','twilio service DOWN BY ZITROJJDEV... CHECK LOG instead ');
+    console.log('\x1b[41m%s\x1b[0m','twilio service DOWN BY ZITROJJDEV... CHECK LOG instead ', newCheckData.id, newCheckData.url);
+}
+
+// If a token has expired, clean it
+workers.cleanOldTokens = function(){
+  setInterval(function () {
+    // que the list of tokens
+    _data.list('tokens', function(err, tokenList){
+      if (!err) {
+        if (tokenList.length>0) {
+          //now we check all tokens and open get the data
+         tokenList.forEach(token => {
+          _data.read('tokens', token, function(err, tokenData){
+            if (!err && tokenData) {
+              //now we check if the token has expired
+              if (tokenData.expires < Date.now()) {
+                _data.delete('tokens', token, function(err){
+                  if (!err) {
+                    console.log('\x1b[32m%s\x1b[0m','token '+ token + ' had expired and was deleted' );
+                  } else {
+                    console.log('\x1b[41m%s\x1b[0m','Error detected during cleaning old token method _data.read')
+                  }
+                })
+              }
+            } else {
+              console.log('\x1b[41m%s\x1b[0m','Error detected during cleaning old token method _data.read'); 
+            }
+          })
+         }) 
+        }
+      } else {
+       console.log('\x1b[41m%s\x1b[0m','Error detected during cleaning old token method _data.list'); 
+      }
+    })
+  }, 1000 * 60);
 }
 // Init script
 workers.init = function () {
@@ -317,6 +351,8 @@ workers.init = function () {
   //Call the  compression loop so logs will be compressed later on
   workers.logRotationLoop()
 
+  //Call clean old tokens
+  workers.cleanOldTokens()
   //logging that workers are on
   console.log('\x1b[33m%s\x1b[0m','Background workers are running');
 };
