@@ -15,11 +15,114 @@ const e = new _events();
 
 //INITIALIZING MODULE OBJ
 const cli = {};
+/*****************************
+ *      INPUT HANDLERS
+ *******************************/
+// for help
+e.on('man', function(strLine){
+  cli.responders.help()
+})
+e.on('help', function(strLine){
+  cli.responders.help()
+})
+// for exit
+e.on('exit', function(strLine){
+  cli.responders.exit()
+})
+//for stats
+e.on('stats', function(strLine){
+  cli.responders.stats()
+})
+//for LIST users
+e.on('list users', function(strLine){
+  cli.responders.listUsers()
+})
+//for more info of one user
+e.on('more user info', function(strLine){
+  //this method requires to check the inputline
+  cli.responders.moreUserInfo(strLine)
+})
+//for list of checks
+e.on('list checks', function(strLine){
+  //this method requires to check the inputline
+  cli.responders.listChecks(strLine)
+})
+//for more check info
+e.on('more check info', function(strLine){
+  //this method requires to check the inputline
+  cli.responders.moreCheckInfo(strLine)
+})
+//for list logs
+e.on('list logs', function(strLine){
+  //this method requires to check the inputline
+  cli.responders.listLogs(strLine)
+})
+//for more log info
+e.on('more log info', function(strLine){
+  //this method requires to check the inputline
+  cli.responders.moreLogInfo(strLine)
+})
+ 
+
+/**********************************
+ *      / INPUT HANDLERS
+ ***********************************/
+
+//Responders object
+cli.responders= {}
+
+/**********************************
+ *       RESPONDERS
+ ***********************************/
+
+//HELP && MAN
+cli.responders.help = function(){
+  console.log('you asked for help');
+}
+
+//EXIT
+cli.responders.exit = function(){
+  process.exit(0)
+}
+
+//STATS
+cli.responders.stats = function(){
+  console.log('you wanted to see the stats');
+}
+
+//List Users
+cli.responders.listUsers = function(){
+  console.log('you wanted to see the list of all users');
+}
+//MORE USER INFO
+cli.responders.moreUserInfo = function(str){
+  console.log('you wanted to see more info of 1 user ', str);
+}
+//LIST CHECKS
+cli.responders.listChecks = function(str){
+  console.log('you wanted to see the list of all checks ', str);
+}
+//MORE CHECK INFO
+cli.responders.moreCheckInfo = function(str){
+  console.log('you wanted to see more info of 1 check ', str);
+}
+//LIST LOGS
+cli.responders.listLogs = function(){
+  console.log('you wanted to see the list of all logs');
+}
+//MORE LOG INFO
+cli.responders.moreLogInfo = function(str){
+  console.log('you wanted to see more info of 1 log ', str );
+}
+
+/**********************************
+ *       RESPONDERS
+ ***********************************/
 
 //Input Processor
 cli.processInput = function (strLine) {
   strLine = contractChecker.notEmptyString(strLine.trim());
-
+  
   //only continue if there was an input
   if (strLine) {
     //codify the unique questions allowed
