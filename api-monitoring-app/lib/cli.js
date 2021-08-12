@@ -8,7 +8,10 @@ const util = require("util");
 const debug = util.debuglog("cli");
 const events = require("events");
 class _events extends events {}
+const os = require('os')
+const v8 = require('v8')
 
+const _data = require('./data')
 const contractChecker = require("./contractChecker");
 
 //codify the unique questions allowed
@@ -91,24 +94,7 @@ cli.responders.help = function(){
     "more log info --{fileName}":"Show details of specified log file"
   };
   
-  //CLI FORMAT Helpers
-  cli.horizontalLine()
-  cli.centered('CLI MANUAL')
-  cli.horizontalLine()
-  cli.verticalSpace(2)
-  
-  // Show each command, followed by its explination
-  Object.keys(commands).forEach(e=>{
-    let line= '\x1b[33m'+e+'\x1b[0m'
-    const value = commands[e]
-    const padding = 45- line.length
-    for (let i = 0; i < padding; i++) {
-      line += ' '
-    }
-    line +=  value
-    console.log(line);
-    cli.verticalSpace()
-  })
+  cli.renderObjectStyle('CLI MANUAL', commands)
   
   cli.verticalSpace(1)
 
@@ -123,20 +109,101 @@ cli.responders.exit = function(){
 
 //STATS
 cli.responders.stats = function(){
-  console.log('you wanted to see the stats');
+  //Compile an object of stats
+  const stats = {
+    'Load Average':os.loadavg().join(' '),
+    'CPU Count':os.cpus().length,
+    'Free Memory': os.freemem(),
+    'Current Malloced Memory':v8.getHeapStatistics().malloced_memory,
+    'Peak Malloced Memory':v8.getHeapStatistics().peak_malloced_memory,
+    'Allocated Heap Used (%)':Math.round(v8.getHeapStatistics().used_heap_size*100/v8.getHeapStatistics().total_heap_size),
+    'Allocated Heap Allocated (%)':Math.round(v8.getHeapStatistics().total_heap_size*100/v8.getHeapStatistics().heap_size_limit),
+    'Uptime':os.uptime()+' Seconds'
+  }
+
+  //Create a Header
+  cli.renderObjectStyle('SYSTEM STATS', stats)
+  cli.verticalSpace()
+  cli.horizontalLine()
+   //
 }
 
 //List Users
 cli.responders.listUsers = function(){
-  console.log('you wanted to see the list of all users');
+  //GET ALL USERS
+  _data.list('users', function(err,userIds){
+    if (!err && userIds && userIds.length>0) {
+      cli.verticalSpace()
+      userIds.forEach(userId => {
+        _data.read('users', userId, function(err, userData){
+          if (!err && userData) {
+            let line = 'userId: '+userId+' Name: '+ userData.firstName + ' '+ userData.lastName+ ' Phone: +00'+userId + ' Checks: '
+            const numberOfChecks = Array.isArray(userData.checks) ? userData.checks.length : 0
+            line+=numberOfChecks
+            console.log(line);
+            cli.verticalSpace()
+          } else {
+            debug('Error reading user ', userId, ' data. line 146 cli.js')
+          }
+        })
+      })
+    } else {
+      debug('Error getting the list users. line 151 cli.js')
+    }
+  })
 }
 //MORE USER INFO
 cli.responders.moreUserInfo = function(str){
-  console.log('you wanted to see more info of 1 user ', str);
+  const arr= str.split('--')
+  const userId= contractChecker.notEmptyString(arr[1])
+  if (userId) {
+    //Look up the user
+    _data.read('users', userId, function(err, userData){
+      if (!err && userData) {
+      //Remove the hashed Password
+      delete userData.hashedPassword
+  
+      //Print the json
+      cli.verticalSpace()
+      console.dir(userData, {colors:true})
+      } else {
+        debug('Error reading user ', userId, ' data. line 170 cli.js')
+      }
+    })
+  }
 }
 //LIST CHECKS
 cli.responders.listChecks = function(str){
-  console.log('you wanted to see the list of all checks ', str);
+  _data.list('checks',function(err, checkList){
+    if (!err && checkList) {
+      cli.verticalSpace()
+      checkList.forEach(checkId => {
+        //get the check data
+        _data.read('checks', checkId, function(err, checkData){
+          if (!err && checkData) {
+            let includeCheck = false //@TODO
+            const lowerString = str.toLowerCase()
+
+            //Get the estate of the check, default to down
+            const state = typeof checkData.state == 'string' ? checkData.state : 'down'
+            // Get the state default to unkown
+            const stateOrUnkown = typeof checkData.state == 'string' ? checkData.state : 'unkown'
+            // If the user defines --up or --down or no state in particular
+            
+            if (lowerString.includes('--'+state) || (!lowerString.includes('--up') && !lowerString.includes('--down'))) {
+              const line = 'ID: '+checkData.id+' '+checkData.method.toUpperCase()+' '+checkData.protocol+'://'+checkData.url+' State: '+stateOrUnkown
+              console.log(line);
+              cli.verticalSpace()
+            }
+          } else {
+            debug('Error reading check ', checkId, ' data. line 185 cli.js')
+          }
+        })
+      })
+    } else {
+      debug('Error getting the list of checks. line 181 cli.js')
+    }
+  })
 }
 //MORE CHECK INFO
 cli.responders.moreCheckInfo = function(str){
@@ -175,7 +242,7 @@ cli.processInput = function (strLine) {
 
     // Go through possible inputs, emmit an event when a match is found
     let match = false
-    let counter = 0
+    let counter = 0 // @TODO
     uniqueInputs.some(function(input){
         if (strLine.toLowerCase().includes(input)) {
             match=true
@@ -232,6 +299,27 @@ cli.verticalSpace = function(lines=1){
   }
 }
 
+// 
+cli.renderObjectStyle = function(title, object){
+    //CLI FORMAT Helpers
+    cli.horizontalLine()
+    cli.centered(title)
+    cli.horizontalLine()
+    cli.verticalSpace(2)
+    
+    // Show each command, followed by its explination
+    Object.keys(object).forEach(e=>{
+      let line= '\x1b[33m'+e+'\x1b[0m'
+      const value = object[e]
+      const padding = 45- line.length
+      for (let i = 0; i < padding; i++) {
+        line += ' '
+      }
+      line +=  value
+      console.log(line);
+      cli.verticalSpace()
+    })
+}
 
 // initializing
 cli.init = function () {
