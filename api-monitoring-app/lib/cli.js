@@ -12,6 +12,7 @@ const os = require('os')
 const v8 = require('v8')
 
 const _data = require('./data')
+const _logs = require('./logs')
 const contractChecker = require("./contractChecker");
 
 //codify the unique questions allowed
@@ -90,7 +91,7 @@ cli.responders.help = function(){
     "more user info --{userId}":"Show details of specific user",
     "list checks --up --down":"Show a list of all the active checks in the system, including their state. --up or --down are optional",
     "more check info --{checkId}":"Show details of specified check",
-    "list logs": "Show a list of all the log files available to be read (compressed and uncompressed)",
+    "list logs": "Show a list of all the log files available to be read (compressed only)",
     "more log info --{fileName}":"Show details of specified log file"
   };
   
@@ -196,22 +197,53 @@ cli.responders.listChecks = function(str){
               cli.verticalSpace()
             }
           } else {
-            debug('Error reading check ', checkId, ' data. line 185 cli.js')
+            debug('Error reading check ', checkId, ' data. line 199 cli.js')
           }
         })
       })
     } else {
-      debug('Error getting the list of checks. line 181 cli.js')
+      debug('Error getting the list of checks. line 204 cli.js')
     }
   })
 }
 //MORE CHECK INFO
 cli.responders.moreCheckInfo = function(str){
-  console.log('you wanted to see more info of 1 check ', str);
+  const arr= str.split('--')
+  const checkId= contractChecker.notEmptyString(arr[1])
+
+  if (checkId) {
+    //Look up the check
+    _data.read('checks', checkId, function(err, checkData){
+      if (!err && checkData) {
+      //Print the json
+      cli.verticalSpace()
+      console.dir(checkData, {colors:true})
+      } else {
+        debug('Error reading user ', checkId, ' data. line 221 cli.js')
+      }
+    })
+  }
 }
 //LIST LOGS
 cli.responders.listLogs = function(){
-  console.log('you wanted to see the list of all logs');
+  
+  _logs.list(true,function(err, logFileNames){
+    
+    if (!err && logFileNames) {
+      //console.log('entro ', logFileNames);
+      cli.verticalSpace()
+      logFileNames.forEach(logFileName => {
+        
+        //get the logs that are compressed
+        if (logFileName.includes('-')){
+          console.log(logFileName);
+          cli.verticalSpace()
+        }
+      })
+    } else {
+      debug('Error getting the list of logs. line 245 cli.js')
+    }
+  })
 }
 //MORE LOG INFO
 cli.responders.moreLogInfo = function(str){

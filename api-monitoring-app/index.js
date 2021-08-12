@@ -15,7 +15,7 @@ const app = {}
 // Initializing an app starts by initializing the server
 app.init = function(){
   server.init()
-  //workers.init()
+  workers.init()
 
   //cli must be shown after the initial messages
   setTimeout(function(){
