@@ -13,6 +13,7 @@ const v8 = require('v8')
 
 const _data = require('./data')
 const _logs = require('./logs')
+const helpers = require('./helpers')
 const contractChecker = require("./contractChecker");
 
 //codify the unique questions allowed
@@ -247,7 +248,29 @@ cli.responders.listLogs = function(){
 }
 //MORE LOG INFO
 cli.responders.moreLogInfo = function(str){
-  console.log('you wanted to see more info of 1 log ', str );
+  const arr= str.split('--')
+  const logFileName= contractChecker.notEmptyString(arr[1])
+
+  if(logFileName){
+    cli.verticalSpace()
+    //decompress de log file
+    _logs.decompress(logFileName, function(err, logData){
+      if (!err && logData) {
+        //Split into lines, as each line represents one check
+        const logArray= logData.split('\n')
+        logArray.forEach(log => {
+          const logObject = helpers.parseJsonToObject(log)
+          if (logObject && logObject !== {}) {
+            console.dir(logObject,{colors:true})
+          } else {
+            debug('Error parsing to Json a compressed data, line 266 cli.js')
+          }
+        })
+      } else {
+        debug('Error line 270 cli.js. in method decompression, no data of log: ', logFileName, err)
+      }
+    })
+  }
 }
 
 /**********************************

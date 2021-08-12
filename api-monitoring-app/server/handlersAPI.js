@@ -510,7 +510,7 @@ handler._checks.post = function (data, callback) {
     data.payload.timeoutSeconds <= 5
       ? data.payload.timeoutSeconds
       : false;
-  console.log('DEBBUG SERVER:  ', data.payload);
+ // console.log('DEBBUG SERVER:  ', data.payload);
   if (protocol && url && method && successCodes && timeoutSeconds) {
     // Get token from header
     const token =

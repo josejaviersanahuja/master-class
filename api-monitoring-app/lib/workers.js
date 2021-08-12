@@ -264,19 +264,14 @@ workers.processCheckOutcome = function (checkData, checkOutcome) {
 //workers LOG va a llevar a cabo un log de datos
 workers.log = function(checkData, checkOutcome, state, alertWarranted, timeOfCheck){
     const date = new Date(timeOfCheck)
-    const payload = `
------------------------------------------------------------
-    Date and Time: ${date.toUTCString()}
-    
-    Check previous state = ${JSON.stringify(checkData)}
-    
-    The resault of this check is ${JSON.stringify(checkOutcome)}
-    
-    The status (state) of the check is "${state.toUpperCase()}"
-    
-    And Should we alert the user? - ${alertWarranted.toString()}
----------------------------------------------------------------------------------
-`
+    const payloadObject = {
+      date:date.toUTCString(),
+      ...checkData,
+      state:state.toUpperCase(),
+      ...checkOutcome,
+      alert:alertWarranted
+    }
+    const payload= JSON.stringify(payloadObject)
     const fileName = `${checkData.id}`
     
     // Append the log to the right file
