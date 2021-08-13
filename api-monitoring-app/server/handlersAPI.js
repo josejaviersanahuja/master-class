@@ -4,11 +4,29 @@
  */
 
 //Dependencies
-const { type } = require("os");
 const config = require("../config");
 const _data = require("../lib/data");
 const helpers = require("../lib/helpers");
+const {URL} = require('url')
+const dns = require('dns')
+const {
+  performance,
+  PerformanceObserver
+} = require('perf_hooks');
+const util = require('util');
+const { debug } = require("console");
+const degub = util.debuglog('performance')
 
+//DEFINE THE PERFORMANCE OBSERVER
+const obs = new PerformanceObserver((perfObserverList, observer) => {
+      perfObserverList.getEntriesByType('measure').forEach(measure => {
+        debug('\x1b[33m%s\x1b[0m', measure.name+' '+measure.duration)
+      })
+  
+  observer.disconnect();
+});
+obs.observe({ type: 'measure' });
+debug('se puede leer?')
 //defining CONST handlers and router
 const handler = {};
 
@@ -302,6 +320,7 @@ handler._tokens = {};
 //Optional data: none
 handler._tokens.post = function (data, callback) {
   //Check that all required fields are filled out
+  performance.mark('entered post token function')
   const phone =
     typeof data.payload.phone == "string" &&
     data.payload.phone.trim().length === 11 // check this line to integrate a universal use of phone numbers
@@ -312,14 +331,19 @@ handler._tokens.post = function (data, callback) {
     data.payload.password.trim().length > 0
       ? data.payload.password.trim()
       : false;
+  performance.mark('begining user lookup post token')
   if (password && phone) {
     //Make sure that the user doesnt already exist
     _data.read("users", phone, function (err, userData) {
+      performance.mark('user lookup complete')
       if (!err && userData) {
         // Hash the password
+        performance.mark('begining password hashing')
         const hashedPasswor = helpers.hash(password);
+        performance.mark('password hashing complete')
         if (hashedPasswor === userData.hashedPassword) {
           // create a new token with a random name and an expiration of 1 hour
+          performance.mark('building the data for the token')
           const tokenID = helpers.createRandomString(20);
           const expires = Date.now() + 1000 * 60 * 60;
 
@@ -328,9 +352,19 @@ handler._tokens.post = function (data, callback) {
             id: tokenID,
             expires: expires,
           };
-
+          performance.mark('begining storing token')
           //Store the token
           _data.create("tokens", tokenID, tokenObject, function (err) {
+            performance.mark('storing token  complete')
+
+            //GATHER all the performance
+            performance.measure('Begining to end', 'entered post token function','storing token  complete')
+            performance.measure('Validating user input', 'entered post token function', 'begining user lookup post token')
+            performance.measure('user lookup', 'begining user lookup post token','user lookup complete' )
+            performance.measure('password hashing', 'begining password hashing','password hashing complete' )
+            performance.measure('token data creation', 'building the data for the token','begining storing token' )
+            performance.measure('token storing', 'begining storing token','storing token  complete' )
+
             if (!err) {
               callback(200, tokenObject);
             } else {
@@ -532,38 +566,48 @@ handler._checks.post = function (data, callback) {
               // Create a random id for the check
               const checkId = helpers.createRandomString(20);
 
-              // Create the check object and include the users phone
-              const checkObject = {
-                id: checkId,
-                protocol: protocol,
-                userPhone: userPhone,
-                url: url,
-                method: method,
-                successCodes: successCodes,
-                timeoutSeconds: timeoutSeconds,
-              };
+              //BEFORE BLIDINGLY CREATE A CHECK ON A URL THAT MAY NOT EXIST, LETS CHECK IT WITH DNS entries
+              const parsedURL = new URL({ toString: () => protocol+'://'+url });
+              const hostname = typeof(parsedURL.hostname)=='string' && parsedURL.hostname.length >0 ? parsedURL.hostname: false
 
-              // Save this object
-              _data.create("checks", checkId, checkObject, function (err) {
-                if (!err) {
-                  // Add the check ID to the users object
-                  userData.checks = userChecks;
-                  userData.checks.push(checkId);
+              dns.resolve(hostname, function(err, adressList) {
+                if (!err && adressList) {
+                      // Create the check object and include the users phone
+                  const checkObject = {
+                    id: checkId,
+                    protocol: protocol,
+                    userPhone: userPhone,
+                    url: url,
+                    method: method,
+                    successCodes: successCodes,
+                    timeoutSeconds: timeoutSeconds,
+                  };
 
-                  // persist new user check
-                  _data.update("users", userPhone, userData, function (err) {
+                  // Save this object
+                  _data.create("checks", checkId, checkObject, function (err) {
                     if (!err) {
-                      callback(200, checkObject);
-                    } else {
-                      callback(500, {
-                        Error: "Could not update the user new check",
+                      // Add the check ID to the users object
+                      userData.checks = userChecks;
+                      userData.checks.push(checkId);
+
+                      // persist new user check
+                      _data.update("users", userPhone, userData, function (err) {
+                        if (!err) {
+                          callback(200, checkObject);
+                        } else {
+                          callback(500, {
+                            Error: "Could not update the user new check",
+                          });
+                        }
                       });
+                    } else {
+                      callback(500, { Error: "Could not create the new check" });
                     }
                   });
                 } else {
-                  callback(500, { Error: "Could not create the new check" });
+                  callback(400, {Error: 'The URL that you entered didn´t resolve to any DNS entries'})
                 }
-              });
+              })
             } else {
               callback(400, {
                 Error:

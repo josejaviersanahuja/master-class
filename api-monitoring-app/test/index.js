@@ -3,45 +3,19 @@
  *
  */
 
-// Dependencies
-const assert = require("assert");
-const helpers = require("../lib/helpers");
+//OVERRIDE the enviroment into testing
+process.env.NODE_ENV = 'testing'
 const cli = require("../lib/cli");
 
 // Application logic for the test runner
 _app = {};
 
 // Container for the tests
-_app.tests = {
-  unit: {},
-};
+_app.tests = {};
 
-//Assert the getNumber function is returning a number
-_app.tests.unit["helpers.getANumber should return a number"] = function (done) {
-  const val = helpers.getANumber();
-  assert.strictEqual(typeof val, "number");
-  done();
-};
+_app.tests.unit = require('./units')
+_app.tests.api = require('./api')
 
-//Assert the getNumber function is returning 1
-_app.tests.unit["helpers.getANumber should return 1"] = function (done) {
-  const val = helpers.getANumber();
-  assert.strictEqual(val, 1);
-  done();
-};
-
-//Assert the getNumber function is returning 2 SHOULD FAIL
-_app.tests.unit["helpers.getANumber should return 2"] = function (done) {
-  const val = helpers.getANumber();
-  assert.strictEqual(val, 2);
-  done();
-};
-//Assert the getNumber function is returning 2 SHOULD FAIL
-_app.tests.unit["helpers.getANumber should return 0"] = function (done) {
-  const val = helpers.getANumber();
-  assert.strictEqual(val, 0);
-  done();
-};
 
 //Count all the tests
 _app.countTests = function () {
@@ -65,13 +39,16 @@ _app.runTests = function () {
   let successes = 0;
   const limit = _app.countTests(); //TODO
   let counter = 0;
-
-  for (const key in _app.tests) {
+  
+for (const key in _app.tests) {
+    
     if (Object.hasOwnProperty.call(_app.tests, key)) {
       const subTest = _app.tests[key];
       for (const testName in subTest) {
+        
         if (Object.hasOwnProperty.call(subTest, testName)) {
           (function () {
+            
             const tmpTestName = testName;
             const testValue = subTest[testName];
             //Call the test
@@ -107,6 +84,7 @@ _app.runTests = function () {
 
 //Produce a test outcome report
 _app.produceTestReport = function (limit, successes, errors) {
+  
   const testStatsObject = {
     "Total tests": limit,
     Pass: successes,
@@ -119,13 +97,14 @@ _app.produceTestReport = function (limit, successes, errors) {
     const failedTestsObject = {};
     errors.forEach((e) => {
       failedTestsObject[e.name] = e.error;
+      
     });
     cli.renderObjectStyle("BEGIN ERROR DETAILS", failedTestsObject, 31);
     
   }
 
   cli.renderObjectStyle('END OF TESTS',{})
-
+  process.exit(0)
 };
 
 // RUN

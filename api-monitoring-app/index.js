@@ -13,16 +13,24 @@ const cli = require('./lib/cli')
 const app = {}
 
 // Initializing an app starts by initializing the server
-app.init = function(){
+app.init = function(callback){
   server.init()
   workers.init()
+  
 
   //cli must be shown after the initial messages
   setTimeout(function(){
     cli.init()
+    
+    callback()
   },50)
 }
 //envolvemos el app init en nuestro dotENV para que las variables de entorno carguen antes de iniciar la app
-dotEnvReader(app.init)
+if (require.main===module) { //solo se ejecuta si la ejecucion se pide por CLI node index.js por ejemplo
+  
+  dotEnvReader(app.init, function(){})  
+}
+//CUANDO NO SE EJECUTA? cuando desde nuestro test/api.js llamamos a la app
+
 
 module.exports = app

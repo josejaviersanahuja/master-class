@@ -44,6 +44,25 @@ enviroments.production = {
     }
 };
 
+enviroments.testing = {
+  'httpPort': 4000,
+  'httpsPort': 4001,
+  'envName': "production",
+  'hashingSecret': 'thisIsASecret',
+  'maxChecks': 5,
+  'twilio': {
+    'fromPhone': '+17149092365',
+    'accountSid': 'AC6e529c5151c30f0271b0283a53607a66',
+    'authToken': process.env.AUTH_TOKEN
+  },
+  'templateGlobals':{
+      'appName':'UptimeChecker',
+      'companyName':'zitrojj.dev',
+      'yearCreated':'2021',
+      'baseUrl': `http://localhost:4000`
+    }
+};
+
 // Determine which enviroment export.
 const currentEnviroment =
   typeof process.env.NODE_ENV == "string"

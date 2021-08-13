@@ -353,8 +353,11 @@ cli.verticalSpace = function(lines=1){
 }
 
 // 
-cli.renderObjectStyle = function(title, object, color=33){
-    //CLI FORMAT Helpers
+cli.renderObjectStyle = function(title, object, color){
+  
+  const wasColorpassedAsParameter = Boolean(color)
+  color = color? color : 33
+  //CLI FORMAT Helpers
     cli.horizontalLine()
     cli.centered(title)
     cli.horizontalLine()
@@ -365,7 +368,7 @@ cli.renderObjectStyle = function(title, object, color=33){
       let line= e==='Fail'? '\x1b[31m'+e+'\x1b[0m' : `\x1b[${color}m`+e+'\x1b[0m'
 
       const value = object[e]
-      const padding = 45- line.length
+      const padding = wasColorpassedAsParameter ? 75-line.length :45- line.length
       for (let i = 0; i < padding; i++) {
         line += ' '
       }

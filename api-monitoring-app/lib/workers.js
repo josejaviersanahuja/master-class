@@ -179,7 +179,7 @@ workers.performCheck = function (checkData) {
     path: path + queryString,
     timeout: checkData.timeoutSeconds * 1000,
   };
-
+  
   //Instantiate the request object (using either the http or https module)
   const _moduleToUse = checkData.protocol === "http" ? http : https;
   const req = _moduleToUse.request(requestDetails, function (res) {
@@ -187,6 +187,7 @@ workers.performCheck = function (checkData) {
     const status = res.statusCode;
     //Update the checkOutcome and pass the data along
     checkOutcome.responseCode = status;
+    
     if (!outcomeSent) {
       workers.processCheckOutcome(checkData, checkOutcome);
       outcomeSent = true;
@@ -226,6 +227,7 @@ workers.performCheck = function (checkData) {
 // PROCESS CHECK OUTCOME and update the checkData, trigger an alert if needed
 // Special logic, initial State of the check is down, we don´t want alerts on the initial State. only if its down after some checks
 workers.processCheckOutcome = function (checkData, checkOutcome) {
+
   //Decide if the check is considered up or down
   const state =
     !checkOutcome.error &&
@@ -233,7 +235,7 @@ workers.processCheckOutcome = function (checkData, checkOutcome) {
     checkData.successCodes.includes(checkOutcome.responseCode.toString())
       ? "up"
       : "down";
-      
+
   // Decide if an alert is warranted
   const alertWarranted =
     checkData.lastChecked && checkData.state !== state ? true : false;

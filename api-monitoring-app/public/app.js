@@ -192,7 +192,7 @@ app.bindForms = function () {
                   payload[nameOfElement]= Array.isArray(payload[nameOfElement]) ? payload[nameOfElement]:[]
                   //only pushing checkboxes selected
                   if (elementIsChecked) {
-                    payload[nameOfElement].push(valueOfElement)
+                    payload[nameOfElement].push(valueOfElement.toString())
                   }
                 } else {
                 //IF the checkbox is for tosAgreement (other that creations of checks)
@@ -211,7 +211,7 @@ app.bindForms = function () {
         }
         // If the method is DELETE, the payload should be a queryStringObject instead
         const queryStringObject = method == 'DELETE' ? payload : {};
-        console.log('DEBBUGG 214 finalRquest = path:',path,' -method: ', method,' -queryStringObject: ', queryStringObject, '-payload: ', payload);
+        //console.log('DEBBUGG 214 finalRquest = path:',path,' -method: ', method,' -queryStringObject: ', queryStringObject, '-payload: ', payload);
         
         //Call the API
         app.client.request(
