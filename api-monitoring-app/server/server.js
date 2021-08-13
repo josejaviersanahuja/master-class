@@ -96,6 +96,7 @@ const server = {}
   });
 } 
 
+// refactored to handle errors coming from the handlers
 server.processHandlerResponse = (res, method, trimmedPath, statusCode, payload, contentType) => {
     //use status code callback by the handler or default 200
     statusCode= typeof(statusCode) == 'number' ? statusCode : 200
@@ -142,8 +143,7 @@ server.processHandlerResponse = (res, method, trimmedPath, statusCode, payload, 
       console.log('\x1b[32m%s\x1b[0m','returning response: ', statusCode);  
     } else {
       console.log('\x1b[31m%s\x1b[0m','returning response: ', statusCode, payloadString);
-    }
-    
+    }    
 }
 
 /************************************************

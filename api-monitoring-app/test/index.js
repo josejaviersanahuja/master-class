@@ -37,7 +37,7 @@ _app.countTests = function () {
 _app.runTests = function () {
   let errors = [];
   let successes = 0;
-  const limit = _app.countTests(); //TODO
+  const limit = _app.countTests(); 
   let counter = 0;
   
 for (const key in _app.tests) {
@@ -84,7 +84,7 @@ for (const key in _app.tests) {
 
 //Produce a test outcome report
 _app.produceTestReport = function (limit, successes, errors) {
-  
+  // datos para el titulo formateado en consola
   const testStatsObject = {
     "Total tests": limit,
     Pass: successes,
@@ -92,7 +92,7 @@ _app.produceTestReport = function (limit, successes, errors) {
   };
   cli.renderObjectStyle("BEGIN TEST REPORT", testStatsObject, 32);
 
-  //if there are errors print them
+  //if there are errors print them in red
   if (errors.length > 0) {
     const failedTestsObject = {};
     errors.forEach((e) => {
@@ -102,8 +102,9 @@ _app.produceTestReport = function (limit, successes, errors) {
     cli.renderObjectStyle("BEGIN ERROR DETAILS", failedTestsObject, 31);
     
   }
-
+// end the test
   cli.renderObjectStyle('END OF TESTS',{})
+  //for integration tests, exit the app
   process.exit(0)
 };
 

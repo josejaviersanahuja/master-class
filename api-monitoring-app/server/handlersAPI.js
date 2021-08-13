@@ -14,8 +14,7 @@ const {
   PerformanceObserver
 } = require('perf_hooks');
 const util = require('util');
-const { debug } = require("console");
-const degub = util.debuglog('performance')
+const debug = util.debuglog('performance')
 
 //DEFINE THE PERFORMANCE OBSERVER
 const obs = new PerformanceObserver((perfObserverList, observer) => {

@@ -29,25 +29,25 @@ helpers.makeGetRequest = function (path, callback) {
       "Content-Type": "application/json",
     },
   };
-  debugger;
+
   //Send the request
   const req = http.request(requestDetails, function (res) {
     console.log(res.statusCode);
-    debugger;
+  
     callback(res);
-    debugger;
+  
   });
-  debugger;
+
   req.on("error", function (err) {
     console.log(err);
-    debugger;
+  
   });
   req.on("finish", function () {
-    debugger;
+  
   });
   req.end();
 
-  debugger;
+
 };
 
 api["app.init doesn´t throw on start"] = function (done) {
@@ -61,9 +61,9 @@ api["app.init doesn´t throw on start"] = function (done) {
 api["/ping should respond to GET with 200"] = function (done) {
   setTimeout(() => {
     helpers.makeGetRequest("/ping", function (res) {
-      debugger;
+    
       assert.strictEqual(res.statusCode, 200);
-      debugger;
+    
       done();
     });
   }, timeOut);
@@ -72,9 +72,9 @@ api["/ping should respond to GET with 200"] = function (done) {
 api["/api/users should respond to GET with 400"] = function (done) {
   setTimeout(() => {
     helpers.makeGetRequest("/ping", function (res) {
-      debugger;
+    
       assert.strictEqual(res.statusCode, 200);
-      debugger;
+    
       done();
     });
   }, timeOut);

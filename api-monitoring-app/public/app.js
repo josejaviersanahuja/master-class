@@ -359,7 +359,6 @@ app.setSessionToken = function (token) {
 //Loop renewing the token
 app.tokenRenewalLoop = function () {
   setInterval(function () {
-    //@TODO renewToken
     app.renewToken(function (err) {
       if (!err) {
         console.log("Token renewd successfully at ", Date.now());
