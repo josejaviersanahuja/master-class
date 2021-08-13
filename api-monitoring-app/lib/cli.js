@@ -183,7 +183,6 @@ cli.responders.listChecks = function(str){
         //get the check data
         _data.read('checks', checkId, function(err, checkData){
           if (!err && checkData) {
-            let includeCheck = false //@TODO
             const lowerString = str.toLowerCase()
 
             //Get the estate of the check, default to down
@@ -297,7 +296,6 @@ cli.processInput = function (strLine) {
 
     // Go through possible inputs, emmit an event when a match is found
     let match = false
-    let counter = 0 // @TODO
     uniqueInputs.some(function(input){
         if (strLine.toLowerCase().includes(input)) {
             match=true
@@ -355,16 +353,17 @@ cli.verticalSpace = function(lines=1){
 }
 
 // 
-cli.renderObjectStyle = function(title, object){
+cli.renderObjectStyle = function(title, object, color=33){
     //CLI FORMAT Helpers
     cli.horizontalLine()
     cli.centered(title)
     cli.horizontalLine()
-    cli.verticalSpace(2)
+    //cli.verticalSpace()
     
     // Show each command, followed by its explination
     Object.keys(object).forEach(e=>{
-      let line= '\x1b[33m'+e+'\x1b[0m'
+      let line= e==='Fail'? '\x1b[31m'+e+'\x1b[0m' : `\x1b[${color}m`+e+'\x1b[0m'
+
       const value = object[e]
       const padding = 45- line.length
       for (let i = 0; i < padding; i++) {
@@ -372,7 +371,7 @@ cli.renderObjectStyle = function(title, object){
       }
       line +=  value
       console.log(line);
-      cli.verticalSpace()
+      //cli.verticalSpace()
     })
 }
 

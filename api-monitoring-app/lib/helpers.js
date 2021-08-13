@@ -231,5 +231,10 @@ helpers.getStaticAsset = function(fileName, callback){
 		callback('Not a valid fileName')
 	}
 }
+
+//getNumber function, dummie function for testing creation
+helpers.getANumber = function() {
+  return 1
+}
 // Export the module
 module.exports = helpers;

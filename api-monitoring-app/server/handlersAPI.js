@@ -783,4 +783,9 @@ handler._checks.delete = function (data, callback) {
   }
 };
 
+//Lets throw an error on porpous to bulletproof our logic an avoid crashings due to a simple error
+handler.testErrors = function(data, callback) {
+  const err = new Error()
+  throw err
+}
 module.exports = handler;

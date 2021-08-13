@@ -19,7 +19,8 @@ lib.append = function(file, str, errorCallback) {
     //Open the file for appending
     fs.open(lib.baseDir+ file + '.log', 'a', function(err, fileDescriptor){
         if (!err && fileDescriptor) {
-            //Append the str
+            //Append the str adding a line down
+            str += '\n'
             fs.appendFile(fileDescriptor, str, function(err){
                 if (!err) {
                     fs.close(fileDescriptor, function(err){
