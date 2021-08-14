@@ -9,10 +9,7 @@ const _data = require("../lib/data");
 const helpers = require("../lib/helpers");
 const {URL} = require('url')
 const dns = require('dns')
-const {
-  performance,
-  PerformanceObserver
-} = require('perf_hooks');
+const { performance, PerformanceObserver } = require('perf_hooks');
 const util = require('util');
 const debug = util.debuglog('performance')
 
@@ -25,7 +22,7 @@ const obs = new PerformanceObserver((perfObserverList, observer) => {
   observer.disconnect();
 });
 obs.observe({ type: 'measure' });
-debug('se puede leer?')
+
 //defining CONST handlers and router
 const handler = {};
 
