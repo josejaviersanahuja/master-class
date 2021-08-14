@@ -10,6 +10,7 @@ const events = require("events");
 class _events extends events {}
 const os = require('os')
 const v8 = require('v8')
+const childProcess = require('child_process')
 
 const _data = require('./data')
 const _logs = require('./logs')
@@ -226,17 +227,19 @@ cli.responders.moreCheckInfo = function(str){
 }
 //LIST LOGS
 cli.responders.listLogs = function(){
-  
-  _logs.list(true,function(err, logFileNames){
-    
-    if (!err && logFileNames) {
+  const ls = childProcess.spawn('ls', ['./.logs/'])
+  ls.stdout.on('data', function(dataObject){
+    const dataStr = dataObject.toString()
+    const logFileNames = dataStr.split('\n')
+
+    if (logFileNames) {
       //console.log('entro ', logFileNames);
       cli.verticalSpace()
       logFileNames.forEach(logFileName => {
         
         //get the logs that are compressed
-        if (logFileName.includes('-')){
-          console.log(logFileName);
+        if (typeof(logFileName) == 'string' && logFileName.includes('-')){
+          console.log(logFileName.trim().split('.')[0]);
           cli.verticalSpace()
         }
       })
@@ -245,6 +248,7 @@ cli.responders.listLogs = function(){
     }
   })
 }
+
 //MORE LOG INFO
 cli.responders.moreLogInfo = function(str){
   const arr= str.split('--')
